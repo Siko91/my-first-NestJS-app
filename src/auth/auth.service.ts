@@ -13,9 +13,9 @@ export type JWTUserData = {
   latestAuthId: string;
 };
 
-export type UserToRegister = Pick<User, 'username' | 'email'> & {
+export type UserToRegister = PickWithout<User, 'id' | 'passwordHash'> & {
   password: string;
-} & Partial<PickWithout<User, 'id' | 'usernanme' | 'passwordHash'>>;
+};
 
 @Injectable()
 export class AuthService {

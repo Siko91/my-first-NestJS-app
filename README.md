@@ -37,3 +37,4 @@ A demo NestJS app about a Pizzeria
 
 - [The ENV Singleton Problem](src/env.ts)
 - [The Hard-LogOut feature](src/users/user.entity.ts)
+- [The "PickWithout" TS Type](src/utils/typescript.ts)

@@ -15,7 +15,7 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', async () => {
+    it('Should return the health status of the system', async () => {
       const res = await appController.getHealth();
       expect(res.online).toBe(true);
       expect(res.connectionReports.db).toBe(true);

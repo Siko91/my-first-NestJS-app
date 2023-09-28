@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { User } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -24,6 +28,13 @@ export class UsersService {
     id: number,
     updatesToMake: Partial<PickWithout<User, 'id'>>,
   ): Promise<{ success: boolean }> {
+    if (Object.prototype.hasOwnProperty.call(updatesToMake, 'isAdmin')) {
+      const user = await this.findOne({ id });
+      if (!user.isAdmin)
+        throw new UnauthorizedException(
+          'Only Admin can change the isAdmin property of a user',
+        );
+    }
     const updateResult = await this.usersRepository.update(id, updatesToMake);
     if (updateResult.affected <= 0) throw new NotFoundException();
     return { success: true };

@@ -9,11 +9,5 @@
   ],
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
-  "mochaExplorer.files": "build/test/**/*.spec.js",
-  "mochaExplorer.require": "source-map-support/register",
-  "mochaExplorer.env": {
-    "TS_NODE_FILES": "true",
-    "NODE_ENV": "test"
-  },
   "editor.rulers": [80, 120]
 }

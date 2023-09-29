@@ -2,37 +2,17 @@
 
 A demo NestJS app about a Pizzeria
 
-## Api Routes:
+## Controllers:
 
-- `[GET]        /health`
-
-- `[POST]       /auth`
-- `[DELETE]     /auth`
-
-- `[GET]        /users/self`
-- `[POST]       /users/self`
-- `[PUT]        /users/self`
-
-- `[GET]        /users/admin`
-- `[GET]        /users/admin/:id`
-- `[POST]       /users/admin`
-- `[PUT]        /users/admin/:id`
-- `[DELETE]     /users/admin/:id`
-
-- `[GET]        /pizza-components`
-- `[GET]        /pizza-components/:type`
-
-- `[POST]       /pizza-components/admin`
-- `[PUT]        /pizza-components/admin/:id`
-
-- `[GET]        /order`
-- `[POST]       /order`
-- `[PUT]        /order/:id`
-
-- `[GET]        /order/admin`
-- `[POST]       /order/admin`
-- `[PUT]        /order/admin/:id`
-- `[DELETE]     /order/admin/:id`
+- `/docs` for Swagger documentation
+- `/health` for checking the state of the server
+- `/auth` for login, register, getProfile, logout
+- `/users/self` for getting or updating one's own profile
+- `/users/admin` for administrating users (list, getOne, add, update, delete)
+- `/pizza-components` for getting information about the possible pizza parts on the menu
+- `/pizza-components/admin` for administrating the possible pizza parts on the menu
+- `/order` for listing, creating and updating pizza orders
+- `/order/admin` for administrating orders (list, filteredList, create, update, delete)
 
 ## Important Comments:
 

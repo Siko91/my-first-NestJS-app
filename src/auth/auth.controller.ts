@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -33,6 +34,12 @@ export class AuthController {
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
     return await this.authService.registerUser(createUserDto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get()
+  async getOwnProfile(@Request() req) {
+    return this.authService.getOwnProfile(req.user);
   }
 
   @UseGuards(AuthGuard)

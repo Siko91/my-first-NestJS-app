@@ -35,4 +35,5 @@ export type JWTUserData = {
   id: number;
   username: string;
   latestAuthId: string;
+  timestamp: number;
 };

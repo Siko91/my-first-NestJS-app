@@ -24,11 +24,12 @@ export class AuthService {
     });
   }
 
-  async registerUser(userToRegister: CreateUserDto) {
-    const password = userToRegister.password;
+  async registerUser(createUserDto: CreateUserDto) {
+    const password = createUserDto.password;
     const saltRounds = env.PASSWORD_SALT_ROUNDS;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
+    const userToRegister = { ...createUserDto };
     delete (userToRegister as any).id;
     delete userToRegister.password;
 
@@ -43,10 +44,14 @@ export class AuthService {
     return this.usersService.hidePrivateData(registeredUser);
   }
 
+  getOwnProfile(user: User) {
+    return this.usersService.hidePrivateData(user);
+  }
+
   async signIn(username, password) {
     const user = await this.usersService.findOne({ username });
 
-    const passwordsMatch = this.comparePasswordWithHash(
+    const passwordsMatch = await this.comparePasswordWithHash(
       password,
       user.passwordHash,
     );
@@ -58,6 +63,7 @@ export class AuthService {
       id: user.id,
       username: user.username,
       latestAuthId: user.latestAuthId,
+      timestamp: Date.now(),
     };
     const payload = {
       sub: JSON.stringify(userData),

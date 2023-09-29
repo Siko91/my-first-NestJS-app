@@ -68,15 +68,38 @@ describe('AuthController', () => {
   }, 30000);
 
   it('Should be able to sign in with existing user', async () => {
-    throw new Error('Not Implemented');
+    const u_req = randomUserDto();
+    await controller.register(u_req);
+
+    const signInRes = await controller.signIn({
+      username: u_req.username,
+      password: u_req.password,
+    });
+
+    expect(signInRes).toHaveProperty('access_token');
   }, 30000);
 
   it('Should not be able to sign in with non-existing user', async () => {
-    throw new Error('Not Implemented');
+    const u_req = randomUserDto();
+
+    await CustomAssert.throwsAsync(() =>
+      controller.signIn({
+        username: u_req.username,
+        password: u_req.password,
+      }),
+    );
   }, 30000);
 
   it('Should not be able to sign in with wrong password', async () => {
-    throw new Error('Not Implemented');
+    const u_req = randomUserDto();
+    await controller.register(u_req);
+
+    await CustomAssert.throwsAsync(() =>
+      controller.signIn({
+        username: u_req.username,
+        password: 'wrong-password',
+      }),
+    );
   }, 30000);
 
   it('JSON Web Tokens should contain some User Information', async () => {
@@ -84,7 +107,20 @@ describe('AuthController', () => {
   }, 30000);
 
   it('Should be able to sign in with multiple tokens (presumably multiple devices)', async () => {
-    throw new Error('Not Implemented');
+    const u_req = randomUserDto();
+    await controller.register(u_req);
+
+    const res1 = await controller.signIn({
+      username: u_req.username,
+      password: u_req.password,
+    });
+
+    const res2 = await controller.signIn({
+      username: u_req.username,
+      password: u_req.password,
+    });
+
+    expect(res1.access_token).not.toBe(res2.access_token);
   }, 30000);
 
   it('Should be able to invalidate all tokens at the same time', async () => {

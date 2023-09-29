@@ -12,7 +12,8 @@ import {
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { ApiTags } from '@nestjs/swagger';
-import { CreateUserDto, JWTUserData, SignInDto } from './auth.types';
+import { CreateUserDto, SignInDto } from './auth.types';
+import { User } from '../users/user.entity';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -38,14 +39,14 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get()
-  async getOwnProfile(@Request() req) {
+  async getOwnProfile(@Request() req: { user: User }) {
     return this.authService.getOwnProfile(req.user);
   }
 
   @UseGuards(AuthGuard)
   @Delete()
-  async invalidateAllExistingTokens(@Request() req) {
-    const profile = req.user as JWTUserData;
+  async invalidateAllExistingTokens(@Request() req: { user: User }) {
+    const profile = req.user;
     await this.authService.invalidateAllExistingTokens(profile);
   }
 }

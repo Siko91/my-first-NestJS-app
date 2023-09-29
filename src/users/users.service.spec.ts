@@ -21,16 +21,4 @@ describe('UsersService', () => {
   it('Can find users by username or ID', async () => {
     throw new Error('Not Implemented');
   }, 30000);
-
-  it('Can update fields of a user', async () => {
-    throw new Error('Not Implemented');
-  }, 30000);
-
-  it("Cannot update User's isAdmin field, unless user is Admin", async () => {
-    throw new Error('Not Implemented');
-  }, 30000);
-
-  it('Does not store plaintext passwords in the DataBase', async () => {
-    throw new Error('Not Implemented');
-  }, 30000);
 });

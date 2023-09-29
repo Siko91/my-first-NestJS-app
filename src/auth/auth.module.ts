@@ -6,14 +6,7 @@ import { AuthController } from './auth.controller';
 import env from '../env';
 
 @Module({
-  imports: [
-    UsersModule,
-    JwtModule.register({
-      global: true,
-      secret: env.JWT_SECRET,
-      signOptions: { expiresIn: '7d' },
-    }),
-  ],
+  imports: [UsersModule],
   providers: [AuthService],
   controllers: [AuthController],
   exports: [AuthService],

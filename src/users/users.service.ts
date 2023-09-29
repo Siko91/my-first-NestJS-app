@@ -27,30 +27,34 @@ export class UsersService {
   }
 
   async updateUser(
+    actingUser: User,
     id: number,
     updatesToMake: Partial<PickWithout<User, 'id'>>,
-  ): Promise<{ success: boolean }> {
-    if (Object.prototype.hasOwnProperty.call(updatesToMake, 'isAdmin')) {
-      const user = await this.findOne({ id });
-      if (!user.isAdmin)
+  ) {
+    if (!actingUser.isAdmin) {
+      if (actingUser.id !== id) {
+        throw new UnauthorizedException(
+          new Error('Only Admin can update profiles of others'),
+        );
+      }
+      if (Object.prototype.hasOwnProperty.call(updatesToMake, 'isAdmin')) {
         throw new UnauthorizedException(
           'Only Admin can change the isAdmin property of a user',
         );
+      }
     }
+
     const updateResult = await this.usersRepository.update(id, updatesToMake);
     if (updateResult.affected <= 0) throw new NotFoundException();
-    return { success: true };
   }
 
-  async deleteUser(id: number): Promise<{ success: boolean }> {
+  async getUser(id: number) {
+    const user = await this.usersRepository.findOneBy({ id });
+    return user;
+  }
+
+  async deleteUser(id: number) {
     const deleteResult = await this.usersRepository.delete(id);
     if (deleteResult.affected <= 0) throw new NotFoundException();
-    return { success: true };
-  }
-
-  hidePrivateData(user: User): Partial<User> {
-    const result: User = { ...user };
-    delete result.passwordHash;
-    return result;
   }
 }

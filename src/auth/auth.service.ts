@@ -41,11 +41,11 @@ export class AuthService {
     };
 
     const registeredUser = await this.usersService.addOne(newUserObject);
-    return this.usersService.hidePrivateData(registeredUser);
+    return registeredUser;
   }
 
   getOwnProfile(user: User) {
-    return this.usersService.hidePrivateData(user);
+    return user;
   }
 
   async signIn(username, password) {
@@ -73,8 +73,11 @@ export class AuthService {
     return { access_token: await this.jwtService.signAsync(payload) };
   }
 
-  async invalidateAllExistingTokens(profile: JWTUserData) {
-    await this.usersService.updateUser(profile.id, { latestAuthId: uuidv4() });
+  async invalidateAllExistingTokens(profile: User) {
+    await this.usersService.updateUser(profile, profile.id, {
+      latestAuthId: uuidv4(),
+    });
+    return { success: true };
   }
 
   async findUser(id: number): Promise<User> {

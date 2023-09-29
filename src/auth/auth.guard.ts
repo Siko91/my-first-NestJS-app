@@ -7,15 +7,15 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import env from '../env';
-import { AuthService } from './auth.service';
 import { User } from '../users/user.entity';
 import { JWTUserData } from './auth.types';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
-    public authService: AuthService,
+    public usersService: UsersService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -23,7 +23,7 @@ export class AuthGuard implements CanActivate {
     const token = this.extractTokenFromHeader(request);
     if (!token) throw new UnauthorizedException();
     const payload = await this.parseToken(token);
-    const user = await this.authService.findUser(payload.id);
+    const user = await this.usersService.findOne({ id: payload.id });
     if (user.latestAuthId !== payload.latestAuthId) {
       throw new UnauthorizedException();
     }
@@ -50,8 +50,8 @@ export class AuthGuard implements CanActivate {
 
 @Injectable()
 export class AdminAuthGuard extends AuthGuard {
-  constructor(jwtService: JwtService, authService: AuthService) {
-    super(jwtService, authService);
+  constructor(jwtService: JwtService, usersService: UsersService) {
+    super(jwtService, usersService);
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

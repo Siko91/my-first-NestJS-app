@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Type } from '../typescriptUtils';
 import env from '../../env';
+import { JwtModule } from '@nestjs/jwt';
 
 export function getDbPath() {
   return path.join(__dirname, '..', '..', 'dbTest.sqlite');
@@ -38,6 +39,11 @@ export async function getControllerOrService<TModule, TControllerOrService>(
 ): Promise<TControllerOrService> {
   const module: TestingModule = await Test.createTestingModule({
     imports: [
+      JwtModule.register({
+        global: true,
+        secret: env.JWT_SECRET,
+        signOptions: { expiresIn: '7d' },
+      }),
       TypeOrmModule.forRoot({
         type: 'sqlite',
         database: env.SQLITE_DB_NAME,

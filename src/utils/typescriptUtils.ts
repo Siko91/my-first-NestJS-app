@@ -17,3 +17,12 @@
  * I used this in a few places in this project. Check them out.
  */
 export type PickWithout<T, K> = Pick<T, Exclude<keyof T, K>>;
+
+/**
+ * This is used to request passing Types as parameters for functions.
+ * Example: function init<T>(TypeOfT: Type<T>, ...args: any[]) { return new TypeOfT(...args); }
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export interface Type<T = any> extends Function {
+  new (...args: any[]): T;
+}

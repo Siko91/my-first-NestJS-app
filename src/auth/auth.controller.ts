@@ -9,16 +9,30 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from './auth.guard';
-import { AuthService, JWTUserData } from './auth.service';
+import { AuthService } from './auth.service';
+import { ApiTags } from '@nestjs/swagger';
+import { CreateUserDto, JWTUserData, SignInDto } from './auth.types';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @HttpCode(HttpStatus.OK)
-  @Post()
-  signIn(@Body() signInDto: Record<string, any>) {
-    return this.authService.signIn(signInDto.username, signInDto.password);
+  @Post('login')
+  async signIn(
+    @Body() signInDto: SignInDto,
+  ): Promise<{ access_token: string }> {
+    return await this.authService.signIn(
+      signInDto.username,
+      signInDto.password,
+    );
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('register')
+  async register(@Body() createUserDto: CreateUserDto) {
+    return await this.authService.registerUser(createUserDto);
   }
 
   @UseGuards(AuthGuard)

@@ -7,7 +7,7 @@ import { User } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FindOptionsWhere } from 'typeorm/find-options/FindOptionsWhere';
-import { PickWithout } from '../utils/typescript';
+import { PickWithout } from '../utils/typescriptUtils';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +21,9 @@ export class UsersService {
   }
 
   async addOne(user: PickWithout<User, 'id'>): Promise<User | undefined> {
-    return this.usersRepository.create(user);
+    const entity = this.usersRepository.create(user);
+    await this.usersRepository.insert(entity);
+    return entity;
   }
 
   async updateUser(
@@ -44,5 +46,11 @@ export class UsersService {
     const deleteResult = await this.usersRepository.delete(id);
     if (deleteResult.affected <= 0) throw new NotFoundException();
     return { success: true };
+  }
+
+  hidePrivateData(user: User): Partial<User> {
+    const result: User = { ...user };
+    delete result.passwordHash;
+    return result;
   }
 }

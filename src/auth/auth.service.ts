@@ -4,18 +4,9 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../users/user.entity';
-import { PickWithout } from 'src/utils/typescript';
+import { PickWithout } from '../utils/typescriptUtils';
 import env from '../env';
-
-export type JWTUserData = {
-  id: number;
-  username: string;
-  latestAuthId: string;
-};
-
-export type UserToRegister = PickWithout<User, 'id' | 'passwordHash'> & {
-  password: string;
-};
+import { CreateUserDto, JWTUserData } from './auth.types';
 
 @Injectable()
 export class AuthService {
@@ -33,18 +24,23 @@ export class AuthService {
     });
   }
 
-  async registerUser(userToRegister: UserToRegister) {
+  async registerUser(userToRegister: CreateUserDto) {
     const password = userToRegister.password;
-    const passwordHash = await bcrypt.hash(password, env.PASSWORD_SALT_ROUNDS);
+    const saltRounds = env.PASSWORD_SALT_ROUNDS;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
 
+    delete (userToRegister as any).id;
     delete userToRegister.password;
+
     const newUserObject: PickWithout<User, 'id'> = {
-      ...(userToRegister as PickWithout<UserToRegister, 'password'>),
+      ...(userToRegister as PickWithout<CreateUserDto, 'password'>),
       passwordHash,
       latestAuthId: uuidv4(),
+      isAdmin: false,
     };
 
-    return await this.usersService.addOne(newUserObject);
+    const registeredUser = await this.usersService.addOne(newUserObject);
+    return this.usersService.hidePrivateData(registeredUser);
   }
 
   async signIn(username, password) {

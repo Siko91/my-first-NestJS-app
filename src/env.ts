@@ -1,5 +1,9 @@
-import { configDotenv } from 'dotenv';
 import { cleanEnv, num, port, str } from 'envalid';
+
+import * as dotenv from 'dotenv';
+if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
+  dotenv.configDotenv({ path: '.env.dev' });
+}
 
 /**
  * TODO: Consider looking for a way for the environment to be treated like a dependency injection, instead of like the Singleton that it currently is.
@@ -12,16 +16,15 @@ export const parseEnv = (rawEnv: any) => {
   const env = cleanEnv(rawEnv, {
     NODE_ENV: str(),
     PORT: port(),
-    SQLITE_DB_NAME: str({ default: 'db.sqlite' }),
+    SQLITE_DB_NAME: str({ default: 'dev.sqlite' }),
     JWT_SECRET: str(),
-    PASSWORD_SALT_ROUNDS: num({ default: 21 }),
+    PASSWORD_SALT_ROUNDS: num({ default: 11 }),
   });
 
   return env;
 };
 
 console.log(`[↗] Loading configuration`);
-configDotenv({});
 export default parseEnv({
   ...process.env,
   NODE_ENV: process.env.NODE_ENV ?? 'development',

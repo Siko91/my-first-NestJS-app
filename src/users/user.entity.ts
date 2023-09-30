@@ -30,15 +30,15 @@ export class User {
   @Column()
   latestAuthId: string;
 
-  @Column()
+  @Column({ nullable: true })
   isAdmin?: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   fullName?: string;
 
-  @Column()
+  @Column({ nullable: true })
   phone?: string;
 
-  @Column()
+  @Column({ nullable: true })
   address?: string;
 }

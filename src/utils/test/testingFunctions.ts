@@ -7,6 +7,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Type } from '../typescriptUtils';
 import env from '../../env';
 import { JwtModule } from '@nestjs/jwt';
+import {
+  PizzaComponentDto,
+  PizzaComponentTypeDto,
+} from 'src/pizza-components/pizza-components.types';
 
 export function getDbPath() {
   return path.join(__dirname, '..', '..', 'dbTest.sqlite');
@@ -29,6 +33,30 @@ export function randomUserDto(): CreateUserDto {
 
     address: `address-${uuidv4()}`,
     phone: `phone-${uuidv4()}`,
+  };
+}
+
+export function randomPizzaComponentType(
+  mandatory: boolean,
+  maximum: number,
+): PizzaComponentTypeDto {
+  return {
+    maximum,
+    mandatory,
+    name: `component-type-${uuidv4()}`,
+    description: `description-${uuidv4()}`,
+  };
+}
+
+export function randomPizzaComponent(
+  currentPrice: number,
+  name?: string,
+  description?: string,
+): PizzaComponentDto {
+  return {
+    currentPrice,
+    name: `${name ?? 'component'}-${uuidv4()}`,
+    description: `${description ?? 'description'}-${uuidv4()}`,
   };
 }
 

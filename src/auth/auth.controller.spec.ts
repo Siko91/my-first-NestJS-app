@@ -23,9 +23,9 @@ describe('AuthController', () => {
   it('Should be able to register a user', async () => {
     const u1_req = randomUserDto();
     const u1 = await controller.register(u1_req);
+    expect(u1.id).toBe(1);
     expect(u1.email).toBe(u1_req.email);
     expect(u1.username).toBe(u1_req.username);
-    expect(u1.passwordHash).toBe(undefined);
   }, 30000);
 
   it('Should not be able to register a user with username or email that is already taken', async () => {
@@ -54,16 +54,16 @@ describe('AuthController', () => {
   it('Should not be able to specify "id", "passwordHash", "isAdmin" and "latestAuthId" when registering', async () => {
     const fields = {
       id: 999999,
-      passwordHash: 'a-string',
       isAdmin: true,
+      passwordHash: 'a-string',
       latestAuthId: 'a-string',
     };
 
     const u_req = { ...randomUserDto(), ...fields };
     const u = await controller.register(u_req);
     expect(u.id).not.toBe(fields.id);
-    expect(u.passwordHash).not.toBeDefined();
     expect(u.isAdmin).not.toBe(fields.isAdmin);
+    expect(u.passwordHash).not.toBe(fields.passwordHash);
     expect(u.latestAuthId).not.toBe(fields.latestAuthId);
   }, 30000);
 

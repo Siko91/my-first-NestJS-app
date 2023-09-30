@@ -6,6 +6,9 @@ import env from './env';
 import { HealthModule } from './health/health.module';
 import { User } from './users/user.entity';
 import { JwtModule } from '@nestjs/jwt';
+import { PizzaComponentsModule } from './pizza-components/pizza-components.module';
+import { PizzaComponentType } from './pizza-components/pizza-component-type.entity';
+import { PizzaComponent } from './pizza-components/pizza-component.entity';
 
 @Module({
   imports: [
@@ -17,11 +20,12 @@ import { JwtModule } from '@nestjs/jwt';
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: env.SQLITE_DB_NAME,
-      entities: [User],
+      entities: [User, PizzaComponentType, PizzaComponent],
     }),
     AuthModule,
     UsersModule,
     HealthModule,
+    PizzaComponentsModule,
   ],
 })
 export class AppModule {}

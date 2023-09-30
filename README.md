@@ -7,7 +7,7 @@ A demo NestJS app about a Pizzeria
 - `/docs` for Swagger documentation
 - `/health` for checking the state of the server
 - `/auth` for login, register, getProfile, logout
-- `/users/self` for getting or updating one's own profile
+- `/users` for getting or updating one's own profile
 - `/users/admin` for administrating users (list, getOne, add, update, delete)
 - `/pizza-components` for getting information about the possible pizza parts on the menu
 - `/pizza-components/admin` for administrating the possible pizza parts on the menu

@@ -4,8 +4,6 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../users/user.entity';
-import { PickWithout } from '../utils/typescriptUtils';
-import env from '../env';
 import { CreateUserDto, JWTUserData } from './auth.types';
 
 @Injectable()
@@ -25,23 +23,7 @@ export class AuthService {
   }
 
   async registerUser(createUserDto: CreateUserDto) {
-    const password = createUserDto.password;
-    const saltRounds = env.PASSWORD_SALT_ROUNDS;
-    const passwordHash = await bcrypt.hash(password, saltRounds);
-
-    const userToRegister = { ...createUserDto };
-    delete (userToRegister as any).id;
-    delete userToRegister.password;
-
-    const newUserObject: PickWithout<User, 'id'> = {
-      ...(userToRegister as PickWithout<CreateUserDto, 'password'>),
-      passwordHash,
-      latestAuthId: uuidv4(),
-      isAdmin: false,
-    };
-
-    const registeredUser = await this.usersService.addOne(newUserObject);
-    return registeredUser;
+    return await this.usersService.registerUser(createUserDto);
   }
 
   getOwnProfile(user: User) {

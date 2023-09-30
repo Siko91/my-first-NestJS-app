@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   Put,
@@ -9,7 +8,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { AdminAuthGuard, AuthGuard } from '../auth/auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './users.types';
@@ -53,16 +52,6 @@ export class UsersController {
     const actingUser = req.user as User;
 
     await this.usersService.updateUser(actingUser, userId, updateUserDto);
-    return { success: true };
-  }
-
-  @UseGuards(AdminAuthGuard)
-  @Delete(':userId')
-  async deleteUser(
-    @Request() req: { user: User },
-    @Param('userId') userId: number,
-  ): Promise<{ success: boolean }> {
-    await this.usersService.deleteUser(userId);
     return { success: true };
   }
 }

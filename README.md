@@ -14,11 +14,26 @@ A demo NestJS app about a Pizzeria
 - `/order` for listing, creating and updating pizza orders
 - `/order/admin` for administrating orders (list, filteredList, create, update, delete)
 
-## Important Comments:
+## About the Database:
+
+I chose to use TypeORM with SQLite for my database management. I selected TypeORM for multiple reasons:
+
+- the style of coding in TypeORM is quite similar to that of NestJS
+- it has been a while since I wrote code for a Relational DB (I wanted to refresh my knowledge)
+
+TypeORM also supports MongoDB integration, but in my opinion that is a bad idea. TypeORM is designed for the purposes of relational data mapping. MongoDB supports relational data, but that is not what it is made for - it's made for Data Blobs. It's really good at managing Data Blobs.
+
+In other words - If I wanted the data to be in MongoDB:
+
+- I would not be using TypeORM
+- The data structure itself would have been quite different
+
+## Important Comments in the code:
 
 - [The ENV Singleton Problem](src/env.ts)
 - [The Hard-LogOut feature](src/users/user.entity.ts)
 - [The "PickWithout" TS Type](src/utils/typescript.ts)
+- [The "Pizza Component" Design](src/pizza-components/pizza-component.entity.ts)
 
 ## My Personal Experience:
 

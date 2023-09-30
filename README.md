@@ -11,8 +11,8 @@ A demo NestJS app about a Pizzeria
 - `/users/admin` for administrating users (list, getOne, add, update, delete)
 - `/pizza-components` for getting information about the possible pizza parts on the menu
 - `/pizza-components/admin` for administrating the possible pizza parts on the menu
-- `/order` for listing, creating and updating pizza orders
-- `/order/admin` for administrating orders (list, filteredList, create, update, delete)
+- `/orders` for listing, creating and updating pizza orders
+- `/orders/admin` for administrating orders (list, filteredList, create, update, delete)
 
 ## About the Database:
 

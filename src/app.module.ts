@@ -9,6 +9,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PizzaComponentsModule } from './pizza-components/pizza-components.module';
 import { PizzaComponentType } from './pizza-components/pizza-component-type.entity';
 import { PizzaComponent } from './pizza-components/pizza-component.entity';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PizzaComponent } from './pizza-components/pizza-component.entity';
     UsersModule,
     HealthModule,
     PizzaComponentsModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}

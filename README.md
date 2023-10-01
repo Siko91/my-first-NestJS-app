@@ -41,6 +41,8 @@ NestJS has an interesting and vary different way of doing things. I'm still gett
 
 **The things I like:**
 
+- I REALLY LIKE how tests can be updated and executed without the need for a TypeScrip build step.
+  - the tests are likely executed with something like `ts-node` behind the scenes. That's awesome!
 - Unit tests are fast enough to run on each file modification
 - API documentation is generated from actual code (instead of from comments or OpenAPI files)
 

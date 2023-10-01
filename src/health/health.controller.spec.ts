@@ -1,11 +1,12 @@
 import { HealthController } from './health.controller';
-import { getControllerOrService } from '../utils/test/testingFunctions';
+import { dropDb, getControllerOrService } from '../utils/test/testingFunctions';
 import { HealthModule } from './health.module';
 
 describe('HealthController', () => {
   let controller: HealthController;
 
   beforeEach(async () => {
+    dropDb();
     controller = await getControllerOrService(
       HealthModule,
       HealthController,

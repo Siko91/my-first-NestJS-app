@@ -2,6 +2,7 @@ import { UsersController } from './users.controller';
 import {
   randomUserDto,
   getControllerOrService,
+  dropDb,
 } from '../utils/test/testingFunctions';
 import { User } from './user.entity';
 import { AuthController } from '../auth/auth.controller';
@@ -14,6 +15,8 @@ describe('UsersController', () => {
   let usersController: UsersController;
 
   beforeEach(async () => {
+    dropDb();
+
     authController = await getControllerOrService(AuthModule, AuthController, [
       User,
     ]);

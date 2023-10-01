@@ -3,12 +3,14 @@ import { PizzaComponentsModule } from './pizza-components.module';
 import { User } from '../users/user.entity';
 import { PizzaComponentType } from './pizza-component-type.entity';
 import { PizzaComponent } from './pizza-component.entity';
-import { getControllerOrService } from '../utils/test/testingFunctions';
+import { dropDb, getControllerOrService } from '../utils/test/testingFunctions';
 
 describe('PizzaComponentsService', () => {
   let service: PizzaComponentsService;
 
   beforeEach(async () => {
+    dropDb();
+
     service = await getControllerOrService(
       PizzaComponentsModule,
       PizzaComponentsService,

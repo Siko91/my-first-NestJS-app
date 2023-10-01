@@ -6,6 +6,7 @@ import { PizzaComponentsController } from '../pizza-components/pizza-components.
 import { AuthModule } from '../auth/auth.module';
 import { OrdersModule } from './orders.module';
 import {
+  dropDb,
   getControllerOrService,
   makeOrderDto,
   setupTestData,
@@ -27,6 +28,8 @@ describe('OrdersController', () => {
   let ordersAdminController: OrdersAdminController;
 
   beforeEach(async () => {
+    dropDb();
+
     const dataTypes = [
       User,
       PizzaComponentType,

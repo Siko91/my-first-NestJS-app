@@ -6,6 +6,7 @@ import { PizzaComponentsController } from '../pizza-components/pizza-components.
 import { AuthModule } from '../auth/auth.module';
 import { OrdersModule } from './orders.module';
 import {
+  dropDb,
   getControllerOrService,
   makeOrderDto,
   setupTestData,
@@ -26,6 +27,8 @@ describe('OrdersAdminController', () => {
   let ordersAdminController: OrdersAdminController;
 
   beforeEach(async () => {
+    dropDb();
+
     const dataTypes = [
       User,
       PizzaComponentType,
@@ -229,10 +232,67 @@ describe('OrdersAdminController', () => {
   }, 30000);
 
   it('Can update orders of others', async () => {
-    throw new Error('Not Implemented');
+    const { users, components: comp } = await setupTestData(
+      authController,
+      pizzaComponentsAdminController,
+      {
+        usersToCreate: 2,
+        componentTypes: [
+          { mandatory: true, maximum: 1, components: [400, 700] },
+          { mandatory: false, maximum: 2, components: [300, 500, 700] },
+          { mandatory: true, maximum: 2, components: [200, 340, 350, 360] },
+        ],
+      },
+    );
+
+    const o = await ordersController.createOrder(
+      { user: users[0] },
+      makeOrderDto(users[0], null, [comp[0][0], comp[2][0], comp[2][1]]),
+    );
+
+    const updateDto = makeOrderDto(users[0], null, [comp[0][0], comp[2][0]]);
+    await ordersAdminController.updateOrder(
+      { user: { ...users[0], isAdmin: true } },
+      o.id,
+      updateDto,
+    );
+
+    const allOrders = await ordersAdminController.listAllOrders();
+    expect(allOrders).toHaveLength(1);
+    expect(allOrders[0].desiredDeliveryTime.toISOString()).toBe(
+      updateDto.desiredDeliveryTime.toISOString(),
+    );
+    expect(allOrders[0].pizzas.length).toBe(updateDto.pizzas.length);
   }, 30000);
 
   it('Can delete orders', async () => {
-    throw new Error('Not Implemented');
+    const { users, components: comp } = await setupTestData(
+      authController,
+      pizzaComponentsAdminController,
+      {
+        usersToCreate: 2,
+        componentTypes: [
+          { mandatory: true, maximum: 1, components: [400, 700] },
+          { mandatory: false, maximum: 2, components: [300, 500, 700] },
+          { mandatory: true, maximum: 2, components: [200, 340, 350, 360] },
+        ],
+      },
+    );
+
+    const o = await ordersController.createOrder(
+      { user: users[0] },
+      makeOrderDto(users[0], null, [comp[0][0], comp[2][0], comp[2][1]]),
+    );
+
+    const allOrders1 = await ordersAdminController.listAllOrders();
+    expect(allOrders1).toHaveLength(1);
+
+    await ordersAdminController.deleteOrder(
+      { user: { ...users[1], isAdmin: true } },
+      o.id,
+    );
+
+    const allOrders2 = await ordersAdminController.listAllOrders();
+    expect(allOrders2).toHaveLength(0);
   }, 30000);
 });

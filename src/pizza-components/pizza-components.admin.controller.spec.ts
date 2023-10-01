@@ -3,6 +3,7 @@ import { PizzaComponentsModule } from './pizza-components.module';
 import { PizzaComponentsController } from './pizza-components.controller';
 import { User } from '../users/user.entity';
 import {
+  dropDb,
   getControllerOrService,
   randomPizzaComponent,
   randomPizzaComponentType,
@@ -16,6 +17,8 @@ describe('PizzaComponentsController', () => {
   let controller: PizzaComponentsController;
 
   beforeEach(async () => {
+    dropDb();
+
     adminController = await getControllerOrService(
       PizzaComponentsModule,
       PizzaComponentsAdminController,

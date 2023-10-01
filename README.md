@@ -28,6 +28,15 @@ In other words - If I wanted the data to be in MongoDB:
 - I would not be using TypeORM
 - The data structure itself would have been quite different
 
+## Known Issues:
+
+Running automated tests together causes a lot of them to fail.
+
+- That is not due to the tests being wrong, but due to their setup being incorrect.
+- The idea was to reset the SQLite Database every time, but doe to some errors, it resets only at the start of a test job.
+- In other words - the test automation works fine if tests are executed one-by-one, but breaks if all of them run at once.
+- Instead of remodelling the tests to expect a polluted DB, I wish to fix the setup so that the DB is always clean.
+
 ## Important Comments in the code:
 
 - [The ENV Singleton Problem](src/env.ts)

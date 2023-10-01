@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import {  getControllerOrService } from '../utils/test/testingFunctions';
+import { getControllerOrService } from '../utils/test/testingFunctions';
 import { User } from '../users/user.entity';
 import { AuthModule } from './auth.module';
 

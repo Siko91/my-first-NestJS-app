@@ -2,12 +2,12 @@ import { AuthController } from './auth.controller';
 import {
   randomUserDto,
   getControllerOrService,
+  dropDb,
 } from '../utils/test/testingFunctions';
 import { AuthModule } from './auth.module';
 import { User } from '../users/user.entity';
 import CustomAssert from '../utils/test/customAssert';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import env from '../env';
 import { AdminAuthGuard, AuthGuard } from './auth.guard';
 import { UsersService } from '../users/users.service';
 import { UsersModule } from '../users/users.module';
@@ -18,6 +18,8 @@ describe('AuthController', () => {
   let controller: AuthController;
 
   beforeEach(async () => {
+    dropDb();
+
     jwtService = await getControllerOrService(JwtModule, JwtService, [User]);
     usersService = await getControllerOrService(UsersModule, UsersService, [
       User,

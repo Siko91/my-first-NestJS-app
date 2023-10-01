@@ -1,4 +1,5 @@
 import {
+  dropDb,
   getControllerOrService,
   randomUserDto,
 } from '../utils/test/testingFunctions';
@@ -13,6 +14,8 @@ describe('UsersController', () => {
   let usersAdminController: UsersAdminController;
 
   beforeEach(async () => {
+    dropDb();
+
     authController = await getControllerOrService(AuthModule, AuthController, [
       User,
     ]);

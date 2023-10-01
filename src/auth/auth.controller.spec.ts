@@ -6,11 +6,22 @@ import {
 import { AuthModule } from './auth.module';
 import { User } from '../users/user.entity';
 import CustomAssert from '../utils/test/customAssert';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import env from '../env';
+import { AdminAuthGuard, AuthGuard } from './auth.guard';
+import { UsersService } from '../users/users.service';
+import { UsersModule } from '../users/users.module';
 
 describe('AuthController', () => {
+  let jwtService: JwtService;
+  let usersService: UsersService;
   let controller: AuthController;
 
   beforeEach(async () => {
+    jwtService = await getControllerOrService(JwtModule, JwtService, [User]);
+    usersService = await getControllerOrService(UsersModule, UsersService, [
+      User,
+    ]);
     controller = await getControllerOrService(AuthModule, AuthController, [
       User,
     ]);
@@ -103,7 +114,21 @@ describe('AuthController', () => {
   }, 30000);
 
   it('JSON Web Tokens should contain some User Information', async () => {
-    throw new Error('Not Implemented');
+    const u_req = randomUserDto();
+    await controller.register(u_req);
+
+    const { access_token } = await controller.signIn({
+      username: u_req.username,
+      password: u_req.password,
+    });
+
+    const u = await new AuthGuard(jwtService, usersService).parseToken(
+      access_token,
+    );
+    expect(u).toHaveProperty('id');
+    expect(u).toHaveProperty('latestAuthId');
+    expect(u).toHaveProperty('timestamp');
+    expect(u).toHaveProperty('username');
   }, 30000);
 
   it('Should be able to sign in with multiple tokens (presumably multiple devices)', async () => {
@@ -124,14 +149,45 @@ describe('AuthController', () => {
   }, 30000);
 
   it('Should be able to invalidate all tokens at the same time', async () => {
-    throw new Error('Not Implemented');
-  }, 30000);
+    const u_req = randomUserDto();
+    const u = await controller.register(u_req);
 
-  it('Only a logged in user should be able to pass the standard Auth Middleware', async () => {
-    throw new Error('Not Implemented');
+    const res1 = await controller.signIn(u_req);
+    const res2 = await controller.signIn(u_req);
+
+    const authGuard = new AuthGuard(jwtService, usersService);
+    expect((await authGuard.validateToken(res1.access_token)).id).toBe(u.id);
+    expect((await authGuard.validateToken(res2.access_token)).id).toBe(u.id);
+
+    controller.invalidateAllExistingTokens({ user: u });
+
+    await CustomAssert.throwsAsync(() =>
+      authGuard.validateToken(res1.access_token),
+    );
+    await CustomAssert.throwsAsync(() =>
+      authGuard.validateToken(res2.access_token),
+    );
   }, 30000);
 
   it('Only an admin should be able to pass the Admin Auth Middleware', async () => {
-    throw new Error('Not Implemented');
+    const u_req = randomUserDto();
+    const u = await controller.register(u_req);
+
+    const { access_token } = await controller.signIn(u_req);
+
+    const authGuard = new AuthGuard(jwtService, usersService);
+    const adminAuthGuard = new AdminAuthGuard(jwtService, usersService);
+
+    expect((await authGuard.validateToken(access_token)).id).toBe(u.id);
+    await CustomAssert.throwsAsync(() =>
+      adminAuthGuard.validateToken(access_token),
+    );
+
+    await usersService.updateUser({ ...u, isAdmin: true }, u.id, {
+      isAdmin: true,
+    });
+
+    expect((await authGuard.validateToken(access_token)).id).toBe(u.id);
+    expect((await adminAuthGuard.validateToken(access_token)).id).toBe(u.id);
   }, 30000);
 });

@@ -21,14 +21,19 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
+    const user = await this.validateToken(token);
+    request['user'] = user;
+    return true;
+  }
+
+  async validateToken(token: string): Promise<User> {
     if (!token) throw new UnauthorizedException();
     const payload = await this.parseToken(token);
     const user = await this.usersService.findOne({ id: payload.id });
     if (user.latestAuthId !== payload.latestAuthId) {
       throw new UnauthorizedException();
     }
-    request['user'] = user;
-    return true;
+    return user;
   }
 
   async parseToken(token: string): Promise<JWTUserData> {
@@ -36,7 +41,7 @@ export class AuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: env.JWT_SECRET,
       });
-      return payload;
+      return JSON.parse(payload.sub);
     } catch {
       throw new UnauthorizedException();
     }
@@ -49,17 +54,44 @@ export class AuthGuard implements CanActivate {
 }
 
 @Injectable()
-export class AdminAuthGuard extends AuthGuard {
-  constructor(jwtService: JwtService, usersService: UsersService) {
-    super(jwtService, usersService);
-  }
+export class AdminAuthGuard {
+  constructor(
+    private jwtService: JwtService,
+    public usersService: UsersService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isLoggedIn = super.canActivate(context);
-    if (!isLoggedIn) return false;
-
     const request = context.switchToHttp().getRequest();
-    const user: User = request['user'];
+    const token = this.extractTokenFromHeader(request);
+    const user = await this.validateToken(token);
+    request['user'] = user;
+    return true;
+  }
+
+  async validateToken(token: string): Promise<User> {
+    if (!token) throw new UnauthorizedException();
+    const payload = await this.parseToken(token);
+    const user = await this.usersService.findOne({ id: payload.id });
+    if (user.latestAuthId !== payload.latestAuthId) {
+      throw new UnauthorizedException();
+    }
     if (!user.isAdmin) throw new UnauthorizedException();
+    return user;
+  }
+
+  async parseToken(token: string): Promise<JWTUserData> {
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: env.JWT_SECRET,
+      });
+      return JSON.parse(payload.sub);
+    } catch {
+      throw new UnauthorizedException();
+    }
+  }
+
+  extractTokenFromHeader(request: Request): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
   }
 }

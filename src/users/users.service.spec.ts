@@ -13,12 +13,4 @@ describe('UsersService', () => {
   it('should be defined', async () => {
     expect(service).toBeDefined();
   }, 30000);
-
-  it('Can create users', async () => {
-    throw new Error('Not Implemented');
-  }, 30000);
-
-  it('Can find users by username or ID', async () => {
-    throw new Error('Not Implemented');
-  }, 30000);
 });

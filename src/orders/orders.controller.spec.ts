@@ -8,9 +8,6 @@ import { OrdersModule } from './orders.module';
 import {
   getControllerOrService,
   makeOrderDto,
-  randomPizzaComponent,
-  randomPizzaComponentType,
-  randomUserDto,
   setupTestData,
 } from '../utils/test/testingFunctions';
 import { OrdersAdminController } from './orders.admin.controller';
@@ -20,7 +17,6 @@ import { PizzaComponent } from '../pizza-components/pizza-component.entity';
 import { OrderedPizzaComponent } from './ordered-pizza-component.entity';
 import { OrderedPizza } from './ordered-pizza.entity';
 import { Order, OrderStatus } from './order.entity';
-import { assert } from 'console';
 
 describe('OrdersController', () => {
   let pizzaComponentsAdminController: PizzaComponentsAdminController;

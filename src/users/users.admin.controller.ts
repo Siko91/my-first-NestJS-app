@@ -52,7 +52,7 @@ export class UsersAdminController {
 
   @UseGuards(AdminAuthGuard)
   @Post()
-  async register(@Body() createUserDto: CreateUserDto) {
+  async addUser(@Body() createUserDto: CreateUserDto) {
     return await this.usersService.registerUser(createUserDto);
   }
 

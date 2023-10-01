@@ -29,7 +29,13 @@ describe('UsersController', () => {
   }, 30000);
 
   it('Admin can get user', async () => {
-    throw new Error('Not Implemented');
+    const u = await authController.register(randomUserDto());
+
+    const res = await usersAdminController.listUsers();
+    expect(res).toHaveLength(1);
+
+    const uRes = await usersAdminController.getOne(u.id);
+    expect(uRes.username).toBe(u.username);
   }, 30000);
 
   it('Admin can list users', async () => {
@@ -75,14 +81,32 @@ describe('UsersController', () => {
   }, 30000);
 
   it('Admin can register users', async () => {
-    throw new Error('Not Implemented');
+    const u = await usersAdminController.addUser(randomUserDto());
+    const uRes = await usersAdminController.getOne(u.id);
+    expect(uRes.username).toBe(u.username);
   }, 30000);
 
   it('Admin can modify users', async () => {
-    throw new Error('Not Implemented');
+    const u = await authController.register(randomUserDto());
+    await usersAdminController.updateUser(
+      { user: { ...u, isAdmin: true } },
+      u.id,
+      { isAdmin: true, fullName: 'John' },
+    );
+
+    const uRes = await usersAdminController.getOne(u.id);
+    expect(uRes.isAdmin).toBe(true);
+    expect(uRes.fullName).toBe('John');
   }, 30000);
 
   it('Admin can delete users', async () => {
-    throw new Error('Not Implemented');
+    const u = await authController.register(randomUserDto());
+    await usersAdminController.deleteUser(
+      { user: { ...u, isAdmin: true } },
+      u.id,
+    );
+
+    const list = await usersAdminController.listUsers();
+    expect(list).toHaveLength(0);
   }, 30000);
 });

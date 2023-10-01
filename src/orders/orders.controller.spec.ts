@@ -254,10 +254,7 @@ describe('OrdersController', () => {
       ),
     );
 
-    const allOrders = await ordersAdminController.listAllOrders(
-      { user: users[0] },
-      'name123',
-    );
+    const allOrders = await ordersAdminController.listAllOrders('name123');
     expect(
       allOrders
         .map((i) => i.id)

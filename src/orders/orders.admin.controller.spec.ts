@@ -5,14 +5,18 @@ import { PizzaComponentsModule } from '../pizza-components/pizza-components.modu
 import { PizzaComponentsController } from '../pizza-components/pizza-components.controller';
 import { AuthModule } from '../auth/auth.module';
 import { OrdersModule } from './orders.module';
-import { getControllerOrService } from '../utils/test/testingFunctions';
+import {
+  getControllerOrService,
+  makeOrderDto,
+  setupTestData,
+} from '../utils/test/testingFunctions';
 import { OrdersAdminController } from './orders.admin.controller';
 import { User } from '../users/user.entity';
 import { PizzaComponentType } from '../pizza-components/pizza-component-type.entity';
 import { PizzaComponent } from '../pizza-components/pizza-component.entity';
 import { OrderedPizzaComponent } from './ordered-pizza-component.entity';
 import { OrderedPizza } from './ordered-pizza.entity';
-import { Order } from './order.entity';
+import { Order, OrderStatus } from './order.entity';
 
 describe('OrdersAdminController', () => {
   let pizzaComponentsAdminController: PizzaComponentsAdminController;
@@ -67,15 +71,161 @@ describe('OrdersAdminController', () => {
   }, 30000);
 
   it('Can list all orders', async () => {
-    throw new Error('Not Implemented');
+    const { users, components: comp } = await setupTestData(
+      authController,
+      pizzaComponentsAdminController,
+      {
+        usersToCreate: 2,
+        componentTypes: [
+          { mandatory: true, maximum: 1, components: [400, 700] },
+          { mandatory: false, maximum: 2, components: [300, 500, 700] },
+          { mandatory: true, maximum: 2, components: [200, 340, 350, 360] },
+        ],
+      },
+    );
+
+    const o1 = await ordersController.createOrder(
+      { user: users[0] },
+      makeOrderDto(users[0], null, [comp[0][0], comp[2][0]]),
+    );
+    const o2 = await ordersController.createOrder(
+      { user: users[0] },
+      makeOrderDto(users[0], null, [comp[0][0], comp[2][1]]),
+    );
+    const o3 = await ordersController.createOrder(
+      { user: users[0] },
+      makeOrderDto(users[0], null, [comp[0][0], comp[2][2]]),
+    );
+
+    const list = await ordersAdminController.listAllOrders();
+    expect(list).toHaveLength(3);
+    expect(
+      list
+        .map((i) => i.id)
+        .sort()
+        .join(),
+    ).toBe([o1.id, o2.id, o3.id].sort().join());
   }, 30000);
 
-  it('Can list all orders by status', async () => {
-    throw new Error('Not Implemented');
+  it('Can update status and list all orders by status', async () => {
+    const { users, components: comp } = await setupTestData(
+      authController,
+      pizzaComponentsAdminController,
+      {
+        usersToCreate: 2,
+        componentTypes: [
+          { mandatory: true, maximum: 1, components: [400, 700] },
+          { mandatory: false, maximum: 2, components: [300, 500, 700] },
+          { mandatory: true, maximum: 2, components: [200, 340, 350, 360] },
+        ],
+      },
+    );
+
+    const o1 = await ordersController.createOrder(
+      { user: users[0] },
+      makeOrderDto(users[0], null, [comp[0][0], comp[2][0]]),
+    );
+    const o2 = await ordersController.createOrder(
+      { user: users[0] },
+      makeOrderDto(users[0], null, [comp[0][0], comp[2][1]]),
+    );
+    await ordersController.createOrder(
+      { user: users[0] },
+      makeOrderDto(users[0], null, [comp[0][0], comp[2][2]]),
+    );
+
+    await ordersAdminController.updateOrderStatus(
+      { user: { ...users[0], isAdmin: true } },
+      o1.id,
+      OrderStatus.Accepted,
+    );
+    await ordersAdminController.updateOrderStatus(
+      { user: { ...users[0], isAdmin: true } },
+      o2.id,
+      OrderStatus.Accepted,
+    );
+
+    const list = await ordersAdminController.listAllOrdersWithStatus(
+      OrderStatus.Accepted,
+    );
+    expect(list).toHaveLength(2);
+    expect(
+      list
+        .map((i) => i.id)
+        .sort()
+        .join(),
+    ).toBe([o1.id, o2.id].sort().join());
   }, 30000);
 
   it('Can filter & sort all orders', async () => {
-    throw new Error('Not Implemented');
+    const { users, components: comp } = await setupTestData(
+      authController,
+      pizzaComponentsAdminController,
+      {
+        usersToCreate: 2,
+        componentTypes: [
+          { mandatory: true, maximum: 1, components: [400, 700] },
+          { mandatory: false, maximum: 2, components: [300, 500, 700] },
+          { mandatory: true, maximum: 2, components: [200, 340, 350, 360] },
+        ],
+      },
+    );
+
+    const o1 = await ordersController.createOrder(
+      { user: { ...users[0] } },
+      makeOrderDto(
+        users[0],
+        { address: 'name123' },
+        [comp[0][0], comp[2][3]],
+        [comp[0][1], comp[2][1]],
+      ),
+    );
+    const o2 = await ordersController.createOrder(
+      { user: { ...users[0], fullName: '-name1234-' } },
+      makeOrderDto(
+        users[0],
+        null,
+        [comp[0][0], comp[2][3]],
+        [comp[0][0], comp[2][2]],
+      ),
+    );
+    await ordersController.createOrder(
+      { user: users[0] },
+      makeOrderDto(users[0], null, [comp[0][0], comp[2][0]]),
+    );
+
+    const o4_u2 = await ordersController.createOrder(
+      { user: { ...users[1], email: 'name123-' } },
+      makeOrderDto(users[0], null, [comp[0][1], comp[2][3]]),
+    );
+    const o5_u2 = await ordersController.createOrder(
+      { user: users[1] },
+      makeOrderDto(
+        users[0],
+        { extraDeliveryInstructions: 'bla bla name123 bla bla' },
+        [comp[0][1], comp[2][1]],
+      ),
+    );
+
+    const allOrders = await ordersAdminController.listAllOrders('name123');
+    expect(
+      allOrders
+        .map((i) => i.id)
+        .sort()
+        .join(),
+    ).toBe([o1.id, o2.id, o4_u2.id, o5_u2.id].sort().join());
+
+    const registeredOrders =
+      await ordersAdminController.listAllOrdersWithStatus(
+        OrderStatus.Registered,
+        'name123',
+      );
+    expect(
+      registeredOrders
+        .map((i) => i.id)
+        .sort()
+        .join(),
+    ).toBe([o1.id, o2.id, o4_u2.id, o5_u2.id].sort().join());
   }, 30000);
 
   it('Can update orders of others', async () => {

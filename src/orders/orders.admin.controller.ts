@@ -23,7 +23,6 @@ export class OrdersAdminController {
   @UseGuards(AdminAuthGuard)
   @Get('status/:status')
   async listAllOrdersWithStatus(
-    @Request() req: { user: User },
     @Param('status') status?: OrderStatus,
     @Query('search') searchString?: string,
     @Query('sortBy') sortBy?: string,
@@ -40,7 +39,6 @@ export class OrdersAdminController {
   @UseGuards(AdminAuthGuard)
   @Get()
   async listAllOrders(
-    @Request() req: { user: User },
     @Query('search') searchString?: string,
     @Query('sortBy') sortBy?: string,
     @Query('descending') descending?: boolean,

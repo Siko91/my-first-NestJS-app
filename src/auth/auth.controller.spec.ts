@@ -161,7 +161,7 @@ describe('AuthController', () => {
     expect((await authGuard.validateToken(res1.access_token)).id).toBe(u.id);
     expect((await authGuard.validateToken(res2.access_token)).id).toBe(u.id);
 
-    controller.invalidateAllExistingTokens({ user: u });
+    await controller.invalidateAllExistingTokens({ user: u });
 
     await CustomAssert.throwsAsync(() =>
       authGuard.validateToken(res1.access_token),

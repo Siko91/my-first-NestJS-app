@@ -180,7 +180,7 @@ export async function getControllerOrService<TModule, TControllerOrService>(
         database: env.SQLITE_DB_NAME,
         entities: [...TypeOrmEntities],
         synchronize: true, // ONLY FOR TESTING - use "migrations" for production
-        // dropSchema: true, // ONLY FOR TESTING
+        dropSchema: true, // ONLY FOR TESTING
       }),
       ModuleType,
     ],

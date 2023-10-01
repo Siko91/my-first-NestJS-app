@@ -11,13 +11,10 @@ export class OrderDto {
   }[];
 
   @ApiProperty()
-  orderTimestamp: Date;
-
-  @ApiProperty()
   desiredDeliveryTime: Date;
 
   @ApiProperty()
-  status: OrderStatus;
+  status?: OrderStatus;
 
   @ApiProperty()
   address: string;

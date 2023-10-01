@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinTable,
+  JoinColumn,
 } from 'typeorm';
 import { PizzaComponentType } from './pizza-component-type.entity';
 
@@ -35,8 +36,11 @@ export class PizzaComponent {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => PizzaComponentType, (type) => type.id, { cascade: true })
-  @JoinTable()
+  @Column({})
+  typeId: number;
+
+  @ManyToOne(() => PizzaComponentType, (i) => i.id)
+  @JoinColumn({ name: 'typeId' })
   type: PizzaComponentType;
 
   @Column({ unique: true })

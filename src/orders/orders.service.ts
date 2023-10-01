@@ -7,16 +7,18 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { PizzaComponentType } from '../pizza-components/pizza-component-type.entity';
 import { PizzaComponent } from '../pizza-components/pizza-component.entity';
-import { FindOptionsWhere, Like, Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere, Like, Repository } from 'typeorm';
 import { User } from '../users/user.entity';
 import { OrderedPizzaComponent } from './ordered-pizza-component.entity';
 import { OrderedPizza } from './ordered-pizza.entity';
 import { Order, OrderStatus } from './order.entity';
 import { OrderDto } from './orders.types';
+import { runInTransaction } from '../utils/typeorm';
 
 @Injectable()
 export class OrdersService {
   constructor(
+    private dataSource: DataSource,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(PizzaComponentType)
@@ -33,11 +35,14 @@ export class OrdersService {
 
   async parseOrder(user: User, order: OrderDto): Promise<Order> {
     const orderDoc = this.orderRepository.create({
-      status: order.status,
+      status: user.isAdmin
+        ? order.status ?? OrderStatus.Registered
+        : OrderStatus.Registered,
       address: order.address,
-      orderTimestamp: order.orderTimestamp,
+      orderTimestamp: new Date(),
       desiredDeliveryTime: order.desiredDeliveryTime,
       user: user,
+      pizzas: [],
     });
 
     for (const pizza of order.pizzas) {
@@ -49,6 +54,7 @@ export class OrdersService {
       for (const { componentId } of pizza.components) {
         const componentDoc = await this.pizzaComponentRepository.findOne({
           where: { id: componentId },
+          relations: ['type'],
         });
 
         const orderComponentDoc = this.orderedPizzaComponentRepository.create({
@@ -107,6 +113,10 @@ export class OrdersService {
     }
   }
 
+  async getOrder(id: number) {
+    return await this.orderRepository.findOneBy({ id });
+  }
+
   async listOrdersOfUser(
     user: User,
     filter: FindOptionsWhere<Order>,
@@ -122,10 +132,6 @@ export class OrdersService {
     );
   }
 
-  async getOrder(id: number) {
-    return await this.orderRepository.findOneBy({ id });
-  }
-
   async createOrder(user: User, order: OrderDto): Promise<Order> {
     const orderDoc = await this.parseOrder(user, order);
     for (const pizza of orderDoc.pizzas) {
@@ -133,7 +139,6 @@ export class OrdersService {
     }
 
     await this.orderRepository.insert(orderDoc);
-    console.log(JSON.stringify(orderDoc, null, 2));
     return orderDoc;
   }
 
@@ -151,19 +156,43 @@ export class OrdersService {
 
     const orderDoc = await this.parseOrder(user, {
       address: order.address || originalDoc.address,
-      status: order.status || originalDoc.status,
-      orderTimestamp: order.orderTimestamp || originalDoc.orderTimestamp,
+      status: user.isAdmin
+        ? order.status || originalDoc.status
+        : originalDoc.status, // ignore status field id user is not Admin
       desiredDeliveryTime:
         order.desiredDeliveryTime || originalDoc.desiredDeliveryTime,
       pizzas: order.pizzas || [],
     });
+
+    delete orderDoc.orderTimestamp; // to avoid changing the original timestamp
 
     if (!order.pizzas) delete orderDoc.pizzas; // to avoid deleting all pizzas
     else {
       for (const pizza of orderDoc.pizzas) await this.validatePizza(pizza);
     }
 
-    await this.orderRepository.update({ id }, orderDoc);
+    await runInTransaction(this.dataSource, async () => {
+      if (orderDoc.pizzas) {
+        console.log(`DELETE OrderedPizza ${id}`);
+        await this.orderedPizzaRepository.delete({ order: { id } });
+
+        for (const pizzaDoc of orderDoc.pizzas) {
+          console.log(`INSERT OrderedPizza ${pizzaDoc.additionalRequests}`);
+          pizzaDoc.orderId = id;
+          await this.orderedPizzaRepository.insert(pizzaDoc);
+
+          for (const componentDoc of pizzaDoc.components) {
+            console.log(`INSERT OrderedPizzaComponent ${componentDoc.price}`);
+            componentDoc.pizzaId = pizzaDoc.id;
+            await this.orderedPizzaComponentRepository.insert(componentDoc);
+          }
+        }
+      }
+
+      console.log(`UPDATE OrderedPizza ${id}`);
+      delete orderDoc.pizzas; // pizzas are alreadt written - no need to attempt to write them again
+      await this.orderRepository.update({ id }, orderDoc);
+    });
   }
 
   async listAllOrdersWithStatus(

@@ -22,8 +22,12 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToMany(() => OrderedPizza, (i) => i.id)
-  @JoinTable()
+  @OneToMany(() => OrderedPizza, (i) => i.order, {
+    eager: true,
+    cascade: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   pizzas: OrderedPizza[];
 
   @Column({})

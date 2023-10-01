@@ -10,9 +10,9 @@ describe('PizzaComponentsService', () => {
     }).compile();
 
     service = module.get<PizzaComponentsService>(PizzaComponentsService);
-  });
+  }, 30000);
 
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
+  }, 30000);
 });

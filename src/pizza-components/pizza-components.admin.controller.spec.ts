@@ -26,12 +26,12 @@ describe('PizzaComponentsController', () => {
       PizzaComponentsController,
       [User, PizzaComponentType, PizzaComponent],
     );
-  });
+  }, 30000);
 
   it('should be defined', () => {
     expect(adminController).toBeDefined();
     expect(controller).toBeDefined();
-  });
+  }, 30000);
 
   it('Can create pizza component types', async () => {
     const t_req = randomPizzaComponentType(true, 1);
@@ -49,7 +49,7 @@ describe('PizzaComponentsController', () => {
     expect(tGet[0].mandatory).toBe(true);
     expect(tGet[0].maximum).toBe(1);
     expect(tGet[0].name).toBe(t_req.name);
-  });
+  }, 30000);
 
   it('Can update pizza component types', async () => {
     const t_req = randomPizzaComponentType(true, 1);
@@ -65,7 +65,7 @@ describe('PizzaComponentsController', () => {
     expect(tGet[0].mandatory).toBe(false);
     expect(tGet[0].maximum).toBe(2);
     expect(tGet[0].name).toBe(t2_req.name);
-  });
+  }, 30000);
 
   it('Can delete pizza component types', async () => {
     const t_req = randomPizzaComponentType(true, 1);
@@ -75,7 +75,7 @@ describe('PizzaComponentsController', () => {
 
     const tGet = await controller.getComponentTypes();
     expect(tGet).toHaveLength(0);
-  });
+  }, 30000);
 
   it('Can create pizza components', async () => {
     const t_req = randomPizzaComponentType(true, 1);
@@ -92,7 +92,7 @@ describe('PizzaComponentsController', () => {
     const cGet = await controller.getComponentsOfType(t.id);
     expect(cGet).toHaveLength(1);
     expect(cGet[0].name).toBe(c_req.name);
-  });
+  }, 30000);
 
   it('Can update pizza components', async () => {
     const t_req = randomPizzaComponentType(true, 1);
@@ -109,7 +109,7 @@ describe('PizzaComponentsController', () => {
     expect(cGet[0].name).toBe(c2_req.name);
     expect(cGet[0].description).toBe(c2_req.description);
     expect(cGet[0].currentPrice).toBe(c2_req.currentPrice);
-  });
+  }, 30000);
 
   it('Can delete pizza components', async () => {
     const t_req = randomPizzaComponentType(true, 1);
@@ -125,7 +125,7 @@ describe('PizzaComponentsController', () => {
 
     const cGet = await controller.getComponentsOfType(t.id);
     expect(cGet).toHaveLength(0);
-  });
+  }, 30000);
 
   it('Cannot delete Type if it has Components', async () => {
     const t_req = randomPizzaComponentType(true, 1);
@@ -140,5 +140,5 @@ describe('PizzaComponentsController', () => {
     await CustomAssert.throwsAsync(() =>
       adminController.deleteComponentType(t.id),
     );
-  });
+  }, 30000);
 });

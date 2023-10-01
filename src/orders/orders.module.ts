@@ -10,6 +10,7 @@ import { PizzaComponentsModule } from '../pizza-components/pizza-components.modu
 import { OrderedPizzaComponent } from './ordered-pizza-component.entity';
 import { OrderedPizza } from './ordered-pizza.entity';
 import { Order } from './order.entity';
+import { OrdersAdminController } from './orders.admin.controller';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { Order } from './order.entity';
       Order,
     ]),
   ],
-  controllers: [OrdersController],
+  controllers: [OrdersController, OrdersAdminController],
   providers: [OrdersService],
   exports: [OrdersService],
 })

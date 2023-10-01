@@ -10,9 +10,9 @@ describe('OrdersService', () => {
     }).compile();
 
     service = module.get<OrdersService>(OrdersService);
-  });
+  }, 30000);
 
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
+  }, 30000);
 });

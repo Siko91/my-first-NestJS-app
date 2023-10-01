@@ -10,7 +10,13 @@ import { JwtModule } from '@nestjs/jwt';
 import {
   PizzaComponentDto,
   PizzaComponentTypeDto,
-} from 'src/pizza-components/pizza-components.types';
+} from '../../pizza-components/pizza-components.types';
+import { OrderDto } from '../../orders/orders.types';
+import { User } from '../../users/user.entity';
+import { PizzaComponentType } from '../../pizza-components/pizza-component-type.entity';
+import { PizzaComponent } from '../../pizza-components/pizza-component.entity';
+import { AuthController } from '../../auth/auth.controller';
+import { PizzaComponentsAdminController } from '../../pizza-components/pizza-components.admin.controller';
 
 export function getDbPath() {
   return path.join(__dirname, '..', '..', 'dbTest.sqlite');
@@ -57,6 +63,89 @@ export function randomPizzaComponent(
     currentPrice,
     name: `${name ?? 'component'}-${uuidv4()}`,
     description: `${description ?? 'description'}-${uuidv4()}`,
+  };
+}
+
+export function makeOrderDto(
+  user: { address?: string },
+  pizza: PizzaComponent[],
+  ...morePizzas: PizzaComponent[][]
+): OrderDto {
+  return {
+    address: user.address ?? `address-${uuidv4()}`,
+    desiredDeliveryTime: new Date(),
+    pizzas: [pizza, ...morePizzas].map((i) => {
+      return {
+        components: i.map((c) => {
+          return { componentId: c.id };
+        }),
+        additionalRequests: `additionalRequests-${uuidv4()}`,
+      };
+    }),
+  };
+}
+
+export async function setupTestData(
+  authController: AuthController,
+  pizzaComponentsAdminController: PizzaComponentsAdminController,
+  options: {
+    usersToCreate: number;
+    componentTypes: {
+      mandatory: boolean;
+      maximum: number;
+      components: (
+        | number
+        | { price: number; name?: string; description?: string }
+      )[];
+    }[];
+  },
+) {
+  const userRequests: CreateUserDto[] = [];
+  const users: User[] = [];
+
+  for (let i = 0; i < options.usersToCreate; i++) {
+    const req = randomUserDto();
+    const user = await authController.register(req);
+    userRequests.push(req);
+    users.push(user);
+  }
+
+  const componentTypeRequests: PizzaComponentTypeDto[] = [];
+  const componentTypes: PizzaComponentType[] = [];
+
+  const componentRequests: PizzaComponentDto[][] = [];
+  const createdComponents: PizzaComponent[][] = [];
+
+  for (let i = 0; i < options.componentTypes.length; i++) {
+    const { mandatory, maximum, components } = options.componentTypes[i];
+
+    const tReq = randomPizzaComponentType(mandatory, maximum);
+    const t = await pizzaComponentsAdminController.addComponentType(tReq);
+    componentTypeRequests.push(tReq);
+    componentTypes.push(t);
+
+    componentRequests[i] = [];
+    createdComponents[i] = [];
+
+    for (let cpIndex = 0; cpIndex < components.length; cpIndex++) {
+      let comp = components[cpIndex];
+      comp = typeof comp === 'number' ? { price: comp } : { ...comp };
+      const { price, name, description } = comp;
+      const cReq = randomPizzaComponent(price, name, description);
+      const c = await pizzaComponentsAdminController.addComponent(t.id, cReq);
+      componentRequests[i].push(cReq);
+      createdComponents[i].push(c);
+    }
+  }
+
+  return {
+    users,
+    componentTypes,
+    components: createdComponents,
+    //
+    userRequests,
+    componentTypeRequests,
+    componentRequests,
   };
 }
 

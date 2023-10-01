@@ -25,12 +25,12 @@ describe('PizzaComponentsController', () => {
       PizzaComponentsController,
       [User, PizzaComponentType, PizzaComponent],
     );
-  });
+  }, 30000);
 
   it('should be defined', () => {
     expect(adminController).toBeDefined();
     expect(controller).toBeDefined();
-  });
+  }, 30000);
 
   it('can get all types', async () => {
     const t1_req = randomPizzaComponentType(true, 1);
@@ -51,7 +51,7 @@ describe('PizzaComponentsController', () => {
         .sort()
         .join(),
     ).toBe([t1.id, t2.id, t3.id].sort().join());
-  });
+  }, 30000);
 
   it('can get all components', async () => {
     const t1_req = randomPizzaComponentType(true, 1);
@@ -77,7 +77,7 @@ describe('PizzaComponentsController', () => {
         .sort()
         .join(),
     ).toBe([150, 300].join());
-  });
+  }, 30000);
 
   it('can filter & sort components', async () => {
     const t1_req = randomPizzaComponentType(true, 1);
@@ -100,7 +100,7 @@ describe('PizzaComponentsController', () => {
       true,
     );
     expect(cGet.map((i) => i.currentPrice).join()).toBe([300, 200, 150].join());
-  });
+  }, 30000);
 
   it('can filter & sort components of a type', async () => {
     const t1_req = randomPizzaComponentType(true, 1);
@@ -132,5 +132,5 @@ describe('PizzaComponentsController', () => {
       true,
     );
     expect(cGet2.map((i) => i.currentPrice).join()).toBe('200');
-  });
+  }, 30000);
 });

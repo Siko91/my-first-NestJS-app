@@ -66,22 +66,36 @@ export function randomPizzaComponent(
   };
 }
 
+export type MakePizzaDtoParameterType =
+  | PizzaComponent[]
+  | { components: PizzaComponent[]; additionalRequests: string };
+
 export function makeOrderDto(
   user: { address?: string },
-  pizza: PizzaComponent[],
-  ...morePizzas: PizzaComponent[][]
+  dto: Partial<OrderDto> | undefined | null,
+  ...pizzas: MakePizzaDtoParameterType[]
 ): OrderDto {
   return {
     address: user.address ?? `address-${uuidv4()}`,
     desiredDeliveryTime: new Date(),
-    pizzas: [pizza, ...morePizzas].map((i) => {
-      return {
-        components: i.map((c) => {
-          return { componentId: c.id };
-        }),
-        additionalRequests: `additionalRequests-${uuidv4()}`,
-      };
+    pizzas: pizzas.map((i) => {
+      if (Array.isArray(i)) {
+        return {
+          components: i.map((c) => {
+            return { componentId: c.id };
+          }),
+          additionalRequests: `additionalRequests-${uuidv4()}`,
+        };
+      } else {
+        return {
+          components: (i as any).components.map((c) => {
+            return { componentId: c.id };
+          }),
+          additionalRequests: (i as any).additionalRequests,
+        };
+      }
     }),
+    ...(dto ?? {}),
   };
 }
 

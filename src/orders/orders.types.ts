@@ -17,5 +17,17 @@ export class OrderDto {
   status?: OrderStatus;
 
   @ApiProperty()
-  address: string;
+  address?: string;
+
+  @ApiProperty()
+  userEmail?: string;
+
+  @ApiProperty()
+  userPhone?: string;
+
+  @ApiProperty()
+  userFullName?: string;
+
+  @ApiProperty()
+  extraDeliveryInstructions?: string;
 }

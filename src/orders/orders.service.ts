@@ -38,7 +38,11 @@ export class OrdersService {
       status: user.isAdmin
         ? order.status ?? OrderStatus.Registered
         : OrderStatus.Registered,
-      address: order.address,
+      address: order.address ?? user.address,
+      userEmail: order.userEmail ?? user.email,
+      userPhone: order.userPhone ?? user.phone,
+      userFullName: order.userFullName ?? user.fullName,
+      extraDeliveryInstructions: order.extraDeliveryInstructions,
       orderTimestamp: new Date(),
       desiredDeliveryTime: order.desiredDeliveryTime,
       user: user,
@@ -133,7 +137,17 @@ export class OrdersService {
   }
 
   async createOrder(user: User, order: OrderDto): Promise<Order> {
+    if (!order.pizzas || !order.pizzas.length)
+      throw new BadRequestException('Cannot make order without any pizzas');
+
+    for (const pizza of order.pizzas)
+      if (!pizza.components || !pizza.components.length)
+        throw new BadRequestException(
+          'Cannot make order with a pizza without any components',
+        );
+
     const orderDoc = await this.parseOrder(user, order);
+
     for (const pizza of orderDoc.pizzas) {
       await this.validatePizza(pizza);
     }
@@ -212,17 +226,19 @@ export class OrdersService {
 
   async listAllOrders(
     filter: FindOptionsWhere<Order>,
-    searchString: string,
+    search: string,
     sortBy: string,
     descending: boolean,
   ) {
     const whereFilter: FindOptionsWhere<Order> | FindOptionsWhere<Order>[] =
-      searchString === undefined
+      search === undefined
         ? { ...filter }
         : [
-            { address: Like(`%${searchString}%`), ...filter },
-            { user: { fullName: Like(`%${searchString}%`) }, ...filter },
-            { user: { email: Like(`%${searchString}%`) }, ...filter },
+            { address: Like(`%${search}%`), ...filter },
+            { userEmail: Like(`%${search}%`), ...filter },
+            { userPhone: Like(`%${search}%`), ...filter },
+            { userFullName: Like(`%${search}%`), ...filter },
+            { extraDeliveryInstructions: Like(`%${search}%`), ...filter },
           ];
 
     const results = await this.orderRepository.find({

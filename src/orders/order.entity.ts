@@ -33,7 +33,7 @@ export class Order {
   @Column({})
   userId: number;
 
-  @ManyToOne(() => User, (i) => i.id)
+  @ManyToOne(() => User, (i) => i.id, { eager: true })
   @JoinColumn({ name: 'userId' })
   user: User;
 
@@ -48,4 +48,16 @@ export class Order {
 
   @Column({})
   address: string;
+
+  @Column({})
+  userEmail: string;
+
+  @Column({})
+  userPhone: string;
+
+  @Column({})
+  userFullName: string;
+
+  @Column({ nullable: true })
+  extraDeliveryInstructions?: string;
 }

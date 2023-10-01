@@ -17,6 +17,7 @@ import { PizzaComponent } from '../pizza-components/pizza-component.entity';
 import { OrderedPizzaComponent } from './ordered-pizza-component.entity';
 import { OrderedPizza } from './ordered-pizza.entity';
 import { Order, OrderStatus } from './order.entity';
+import CustomAssert from '../utils/test/customAssert';
 
 describe('OrdersController', () => {
   let pizzaComponentsAdminController: PizzaComponentsAdminController;
@@ -86,6 +87,7 @@ describe('OrdersController', () => {
 
     const orderReq = makeOrderDto(
       users[0],
+      null,
       [components[0][0], components[2][3]],
       [components[0][1], components[2][0], components[2][1]],
     );
@@ -120,12 +122,13 @@ describe('OrdersController', () => {
 
     const orderReq = makeOrderDto(
       user,
+      null,
       [comp[0][0], comp[2][3]],
       [comp[0][1], comp[2][0], comp[2][1]],
     );
     const order = await ordersController.createOrder({ user }, orderReq);
 
-    const orderUpdateReq = makeOrderDto(user, [
+    const orderUpdateReq = makeOrderDto(user, null, [
       comp[0][0],
       comp[1][1],
       comp[2][3],
@@ -166,15 +169,30 @@ describe('OrdersController', () => {
 
     const o1 = await ordersController.createOrder(
       { user },
-      makeOrderDto(user, [comp[0][0], comp[2][3]], [comp[0][1], comp[2][1]]),
+      makeOrderDto(
+        user,
+        null,
+        [comp[0][0], comp[2][3]],
+        [comp[0][1], comp[2][1]],
+      ),
     );
     const o2 = await ordersController.createOrder(
       { user },
-      makeOrderDto(user, [comp[0][0], comp[2][3]], [comp[0][0], comp[2][1]]),
+      makeOrderDto(
+        user,
+        null,
+        [comp[0][0], comp[2][3]],
+        [comp[0][0], comp[2][1]],
+      ),
     );
     await ordersController.createOrder(
       { user: users[1] },
-      makeOrderDto(user, [comp[0][1], comp[2][3]], [comp[0][0], comp[2][1]]),
+      makeOrderDto(
+        user,
+        null,
+        [comp[0][1], comp[2][3]],
+        [comp[0][0], comp[2][1]],
+      ),
     );
 
     const ownOrders = await ordersController.listOrdersOfUser({ user });
@@ -193,49 +211,51 @@ describe('OrdersController', () => {
       {
         usersToCreate: 2,
         componentTypes: [
-          {
-            mandatory: true,
-            maximum: 1,
-            components: [{ price: 400, name: '-name123-' }, 700],
-          },
+          { mandatory: true, maximum: 1, components: [400, 700] },
           { mandatory: false, maximum: 2, components: [300, 500, 700] },
-          {
-            mandatory: true,
-            maximum: 2,
-            components: [200, 340, { price: 350, name: 'name123' }, 360],
-          },
+          { mandatory: true, maximum: 2, components: [200, 340, 350, 360] },
         ],
       },
     );
 
-    const user = users[0];
-
     const o1 = await ordersController.createOrder(
-      { user },
-      makeOrderDto(user, [comp[0][0], comp[2][3]], [comp[0][1], comp[2][1]]),
+      { user: { ...users[0] } },
+      makeOrderDto(
+        users[0],
+        { address: 'name123' },
+        [comp[0][0], comp[2][3]],
+        [comp[0][1], comp[2][1]],
+      ),
+    );
+    const o2 = await ordersController.createOrder(
+      { user: { ...users[0], fullName: '-name1234-' } },
+      makeOrderDto(
+        users[0],
+        null,
+        [comp[0][0], comp[2][3]],
+        [comp[0][0], comp[2][2]],
+      ),
     );
     await ordersController.createOrder(
-      { user },
-      makeOrderDto(user, [comp[0][0], comp[2][3]], [comp[0][0], comp[2][2]]),
-    );
-    const o3_u2 = await ordersController.createOrder(
-      { user: users[1] },
-      makeOrderDto(user, [comp[0][1], comp[2][3]], [comp[0][0], comp[2][1]]),
+      { user: users[0] },
+      makeOrderDto(users[0], null, [comp[0][0], comp[2][0]]),
     );
 
-    const ownOrders = await ordersController.listOrdersOfUser(
-      { user },
-      'name123',
+    const o4_u2 = await ordersController.createOrder(
+      { user: { ...users[1], email: 'name123-' } },
+      makeOrderDto(users[0], null, [comp[0][1], comp[2][3]]),
     );
-    expect(
-      ownOrders
-        .map((i) => i.id)
-        .sort()
-        .join(),
-    ).toBe(`${o1.id}`);
+    const o5_u2 = await ordersController.createOrder(
+      { user: users[1] },
+      makeOrderDto(
+        users[0],
+        { extraDeliveryInstructions: 'bla bla name123 bla bla' },
+        [comp[0][1], comp[2][1]],
+      ),
+    );
 
     const allOrders = await ordersAdminController.listAllOrders(
-      { user },
+      { user: users[0] },
       'name123',
     );
     expect(
@@ -243,10 +263,21 @@ describe('OrdersController', () => {
         .map((i) => i.id)
         .sort()
         .join(),
-    ).toBe([o1.id, o3_u2.id].sort().join());
+    ).toBe([o1.id, o2.id, o4_u2.id, o5_u2.id].sort().join());
+
+    const ownOrders = await ordersController.listOrdersOfUser(
+      { user: users[0] },
+      'name123',
+    );
+    expect(
+      ownOrders
+        .map((i) => i.id)
+        .sort()
+        .join(),
+    ).toBe(`${o1.id},${o2.id}`);
   }, 30000);
 
-  it('Only admin can create or update status of order', async () => {
+  it('Only admin can create status of order', async () => {
     const { users, components: comp } = await setupTestData(
       authController,
       pizzaComponentsAdminController,
@@ -264,7 +295,12 @@ describe('OrdersController', () => {
 
     const o = await ordersController.createOrder(
       { user },
-      makeOrderDto(user, [comp[0][0], comp[2][3]], [comp[0][1], comp[2][1]]),
+      makeOrderDto(
+        user,
+        null,
+        [comp[0][0], comp[2][3]],
+        [comp[0][1], comp[2][1]],
+      ),
     );
 
     await ordersController.updateOrder({ user }, o.id, {
@@ -277,23 +313,110 @@ describe('OrdersController', () => {
     expect(list[0].status).toBe(OrderStatus.Registered);
   }, 30000);
 
-  it('Fails to create or update order if it has no Pizzas', async () => {
-    throw new Error('Not Implemented');
+  it('Fails to create order if it has no Pizzas or Pizza with no Components', async () => {
+    const { users, components: comp } = await setupTestData(
+      authController,
+      pizzaComponentsAdminController,
+      {
+        usersToCreate: 2,
+        componentTypes: [
+          { mandatory: true, maximum: 1, components: [400, 700] },
+          { mandatory: false, maximum: 2, components: [300, 500, 700] },
+          { mandatory: true, maximum: 2, components: [200, 340, 350, 360] },
+        ],
+      },
+    );
+
+    const user = users[0];
+
+    const err1 = await CustomAssert.throwsAsync(() =>
+      ordersController.createOrder({ user }, makeOrderDto(user, null)),
+    );
+    expect(err1.message).toBe('Cannot make order without any pizzas');
+
+    const err2 = await CustomAssert.throwsAsync(() =>
+      ordersController.createOrder(
+        { user },
+        makeOrderDto(
+          user,
+          null,
+          [comp[0][0], comp[2][3]],
+          [],
+          [(comp[0][1], comp[2][1])],
+        ),
+      ),
+    );
+    expect(err2.message).toBe(
+      'Cannot make order with a pizza without any components',
+    );
   }, 30000);
 
-  it('Fails to create or update order if it has Pizza with no Components', async () => {
-    throw new Error('Not Implemented');
+  it('Fails to create order if it has Pizza with missing mandatory components', async () => {
+    const {
+      users,
+      components: comp,
+      componentTypes: types,
+    } = await setupTestData(authController, pizzaComponentsAdminController, {
+      usersToCreate: 2,
+      componentTypes: [
+        { mandatory: true, maximum: 1, components: [400, 700] },
+        { mandatory: false, maximum: 2, components: [300, 500, 700] },
+        { mandatory: true, maximum: 2, components: [200, 340, 350, 360] },
+      ],
+    });
+
+    const user = users[0];
+
+    const err1 = await CustomAssert.throwsAsync(() =>
+      ordersController.createOrder(
+        { user },
+        makeOrderDto(user, null, [comp[0][0]], [comp[0][0], comp[2][3]]),
+      ),
+    );
+    expect(err1.message).toBe(
+      `Pizza must contain a component of type "${types[2].name}"`,
+    );
+
+    const err2 = await CustomAssert.throwsAsync(() =>
+      ordersController.createOrder(
+        { user },
+        makeOrderDto(user, null, [comp[0][0], comp[2][3]], [comp[2][0]]),
+      ),
+    );
+    expect(err2.message).toBe(
+      `Pizza must contain a component of type "${types[0].name}"`,
+    );
   }, 30000);
 
-  it('Fails to create or update order if it has Pizza with missing mandatory components', async () => {
-    throw new Error('Not Implemented');
-  }, 30000);
+  it('Fails to create order if it has Pizza with too many Components of a limited Type', async () => {
+    const {
+      users,
+      components: comp,
+      componentTypes: types,
+    } = await setupTestData(authController, pizzaComponentsAdminController, {
+      usersToCreate: 2,
+      componentTypes: [
+        { mandatory: true, maximum: 1, components: [400, 700] },
+        { mandatory: false, maximum: 2, components: [300, 500, 700] },
+        { mandatory: true, maximum: 2, components: [200, 340, 350, 360] },
+      ],
+    });
 
-  it('Fails to create or update order if it has Pizza with missing mandatory components', async () => {
-    throw new Error('Not Implemented');
-  }, 30000);
+    const user = users[0];
 
-  it('Fails to create or update order if it has Pizza with too many Components of a limited Type', async () => {
-    throw new Error('Not Implemented');
+    const err1 = await CustomAssert.throwsAsync(() =>
+      ordersController.createOrder(
+        { user },
+        makeOrderDto(
+          user,
+          null,
+          [comp[0][0], comp[2][1], comp[2][3], comp[2][3]],
+          [comp[0][0], comp[2][3]],
+        ),
+      ),
+    );
+    expect(err1.message).toBe(
+      `Cannot select more than 2 components of type "${types[2].name}"`,
+    );
   }, 30000);
 });

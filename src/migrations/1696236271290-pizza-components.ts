@@ -105,7 +105,7 @@ const componentTypes: PizzaComponentsByType[] = [
   },
 ];
 
-export class PizzaComponentsMigration implements MigrationInterface {
+export class Migration1696236271290 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     for (const componentType of componentTypes) {
       const type: PickWithout<PizzaComponentType, 'id'> = {

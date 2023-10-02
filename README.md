@@ -2,6 +2,20 @@
 
 A demo NestJS app about a Pizzeria
 
+## Instructions:
+
+#### Running Production:
+
+$ `docker compose up -d --build`
+
+#### Running Dev:
+
+$ `npm i && npm run build && npm run migrations:run && npm run start:dev`
+
+#### Running Tests:
+
+$ `npm i && npm run build && npm run test`
+
 ## Controllers:
 
 - `/docs` for Swagger documentation
@@ -59,4 +73,4 @@ NestJS has an interesting and vary different way of doing things. I'm still gett
   - The simplest way to avoid problems is to add a few extra tests dedicated to checking if each Controller has the right middleware.
 - It is cool that tests can specify the dependency injections with whatever Mocks they choose to use, but it is a bit annoying that it always has to be so explicit.
   - In my case I don't even need mocks.
-  - Because I didn't want to bother with that part, I wrapped it behind the `getControllerOrService(Module, ControllerOrService)` function
+  - Because I didn't want to actually bother with that part, I wrapped it behind the a single function

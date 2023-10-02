@@ -2,7 +2,7 @@ import { User } from '../users/user.entity';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
-export class AdminUserMigration implements MigrationInterface {
+export class Migration1696235104528 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.manager.insert(User, {
       username: 'admin',

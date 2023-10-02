@@ -44,7 +44,6 @@ In other words - If I wanted the data to be in MongoDB:
 
 ## Important Comments in the code:
 
-- [The ENV Singleton Problem](src/env.ts)
 - [The Hard-LogOut feature](src/users/user.entity.ts)
 - [The "PickWithout" TS Type](src/utils/typescript.ts)
 - [The "Pizza Component" Design](src/pizza-components/pizza-component.entity.ts)
@@ -66,7 +65,7 @@ NestJS has an interesting and vary different way of doing things. I'm still gett
 - The unit tests being scattered around the code, instead of grouped in 1 place.
 - The way NestJS does dependency injections.
 
-**Things I do not like so much:**
+**Things I did not like so much:**
 
 - The way Middleware functionality works in NestJS is easy to attach, but also easy to forget.
   - This is not a huge issue, but it is something that one needs to keep in mind.

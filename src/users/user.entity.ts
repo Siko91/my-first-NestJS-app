@@ -31,7 +31,7 @@ export class User {
   latestAuthId: string;
 
   @Column({ nullable: true })
-  isAdmin?: boolean;
+  isAdmin: boolean;
 
   @Column({ nullable: true })
   fullName?: string;

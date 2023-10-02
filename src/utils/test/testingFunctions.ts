@@ -97,16 +97,13 @@ export async function initTestApi() {
 }
 
 export async function dropDbTables(appDataSource: DataSource) {
-  const logs: string[] = [];
   for (const Entity of TestDbEntities) {
     const repo = appDataSource.getRepository(Entity);
     await repo.find();
     try {
-      const res = await repo.delete({});
-      logs.push(`${res.affected} ${Entity.name} rows`);
+      await repo.delete({});
     } catch (error) {}
   }
-  console.log(`Deleted : ${logs.join(', ')}`);
 }
 
 export function randomUserDto(): CreateUserDto {

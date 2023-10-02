@@ -187,23 +187,19 @@ export class OrdersService {
 
     await runInTransaction(this.dataSource, async () => {
       if (orderDoc.pizzas) {
-        console.log(`DELETE OrderedPizza ${id}`);
         await this.orderedPizzaRepository.delete({ order: { id } });
 
         for (const pizzaDoc of orderDoc.pizzas) {
-          console.log(`INSERT OrderedPizza ${pizzaDoc.additionalRequests}`);
           pizzaDoc.orderId = id;
           await this.orderedPizzaRepository.insert(pizzaDoc);
 
           for (const componentDoc of pizzaDoc.components) {
-            console.log(`INSERT OrderedPizzaComponent ${componentDoc.price}`);
             componentDoc.pizzaId = pizzaDoc.id;
             await this.orderedPizzaComponentRepository.insert(componentDoc);
           }
         }
       }
 
-      console.log(`UPDATE OrderedPizza ${id}`);
       delete orderDoc.pizzas; // pizzas are alreadt written - no need to attempt to write them again
       await this.orderRepository.update({ id }, orderDoc);
     });

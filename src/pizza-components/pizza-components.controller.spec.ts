@@ -1,51 +1,33 @@
-import { User } from '../users/user.entity';
-import { PizzaComponentsAdminController } from './pizza-components.admin.controller';
-import { PizzaComponentsController } from './pizza-components.controller';
-import { PizzaComponentsModule } from './pizza-components.module';
-import { PizzaComponentType } from './pizza-component-type.entity';
-import { PizzaComponent } from './pizza-component.entity';
 import {
-  dropDb,
-  getControllerOrService,
+  initTestApi,
   randomPizzaComponent,
   randomPizzaComponentType,
 } from '../utils/test/testingFunctions';
 
 describe('PizzaComponentsController', () => {
-  let adminController: PizzaComponentsAdminController;
-  let controller: PizzaComponentsController;
+  it('should be defined', async () => {
+    const api = await initTestApi();
 
-  beforeEach(async () => {
-    dropDb();
-
-    adminController = await getControllerOrService(
-      PizzaComponentsModule,
-      PizzaComponentsAdminController,
-      [User, PizzaComponentType, PizzaComponent],
-    );
-    controller = await getControllerOrService(
-      PizzaComponentsModule,
-      PizzaComponentsController,
-      [User, PizzaComponentType, PizzaComponent],
-    );
-  }, 30000);
-
-  it('should be defined', () => {
-    expect(adminController).toBeDefined();
-    expect(controller).toBeDefined();
+    expect(api.pizzaComponentsAdminController).toBeDefined();
+    expect(api.pizzaComponentsController).toBeDefined();
   }, 30000);
 
   it('can get all types', async () => {
+    const api = await initTestApi();
+
     const t1_req = randomPizzaComponentType(true, 1);
-    const t1 = await adminController.addComponentType(t1_req);
+    const t1 =
+      await api.pizzaComponentsAdminController.addComponentType(t1_req);
 
     const t2_req = randomPizzaComponentType(true, 1);
-    const t2 = await adminController.addComponentType(t2_req);
+    const t2 =
+      await api.pizzaComponentsAdminController.addComponentType(t2_req);
 
     const t3_req = randomPizzaComponentType(true, 1);
-    const t3 = await adminController.addComponentType(t3_req);
+    const t3 =
+      await api.pizzaComponentsAdminController.addComponentType(t3_req);
 
-    const tGet = await controller.getComponentTypes();
+    const tGet = await api.pizzaComponentsController.getComponentTypes();
     expect(tGet).toHaveLength(3);
 
     expect(
@@ -57,15 +39,28 @@ describe('PizzaComponentsController', () => {
   }, 30000);
 
   it('can get all components', async () => {
-    const t1_req = randomPizzaComponentType(true, 1);
-    const t1 = await adminController.addComponentType(t1_req);
-    const t2_req = randomPizzaComponentType(true, 1);
-    const t2 = await adminController.addComponentType(t2_req);
-    await adminController.addComponent(t1.id, randomPizzaComponent(150));
-    await adminController.addComponent(t1.id, randomPizzaComponent(300));
-    await adminController.addComponent(t2.id, randomPizzaComponent(200));
+    const api = await initTestApi();
 
-    const cGet = await controller.getAllComponents();
+    const t1_req = randomPizzaComponentType(true, 1);
+    const t1 =
+      await api.pizzaComponentsAdminController.addComponentType(t1_req);
+    const t2_req = randomPizzaComponentType(true, 1);
+    const t2 =
+      await api.pizzaComponentsAdminController.addComponentType(t2_req);
+    await api.pizzaComponentsAdminController.addComponent(
+      t1.id,
+      randomPizzaComponent(150),
+    );
+    await api.pizzaComponentsAdminController.addComponent(
+      t1.id,
+      randomPizzaComponent(300),
+    );
+    await api.pizzaComponentsAdminController.addComponent(
+      t2.id,
+      randomPizzaComponent(200),
+    );
+
+    const cGet = await api.pizzaComponentsController.getAllComponents();
     expect(
       cGet
         .map((i) => i.currentPrice)
@@ -73,7 +68,9 @@ describe('PizzaComponentsController', () => {
         .join(),
     ).toBe([150, 200, 300].join());
 
-    const cGet1 = await controller.getComponentsOfType(t1.id);
+    const cGet1 = await api.pizzaComponentsController.getComponentsOfType(
+      t1.id,
+    );
     expect(
       cGet1
         .map((i) => i.currentPrice)
@@ -83,21 +80,25 @@ describe('PizzaComponentsController', () => {
   }, 30000);
 
   it('can filter & sort components', async () => {
+    const api = await initTestApi();
+
     const t1_req = randomPizzaComponentType(true, 1);
-    const t1 = await adminController.addComponentType(t1_req);
+    const t1 =
+      await api.pizzaComponentsAdminController.addComponentType(t1_req);
     const t2_req = randomPizzaComponentType(true, 1);
-    const t2 = await adminController.addComponentType(t2_req);
+    const t2 =
+      await api.pizzaComponentsAdminController.addComponentType(t2_req);
 
     const c1_req = randomPizzaComponent(150, 'my-name12345');
-    await adminController.addComponent(t1.id, c1_req);
+    await api.pizzaComponentsAdminController.addComponent(t1.id, c1_req);
     const c2_req = randomPizzaComponent(300, 'other', 'description-name123');
-    await adminController.addComponent(t1.id, c2_req);
+    await api.pizzaComponentsAdminController.addComponent(t1.id, c2_req);
     const c3_req = randomPizzaComponent(200, 'name123');
-    await adminController.addComponent(t2.id, c3_req);
+    await api.pizzaComponentsAdminController.addComponent(t2.id, c3_req);
     const c4_req = randomPizzaComponent(400, 'other', 'other');
-    await adminController.addComponent(t2.id, c4_req);
+    await api.pizzaComponentsAdminController.addComponent(t2.id, c4_req);
 
-    const cGet = await controller.getAllComponents(
+    const cGet = await api.pizzaComponentsController.getAllComponents(
       'name123',
       'currentPrice',
       true,
@@ -106,21 +107,25 @@ describe('PizzaComponentsController', () => {
   }, 30000);
 
   it('can filter & sort components of a type', async () => {
+    const api = await initTestApi();
+
     const t1_req = randomPizzaComponentType(true, 1);
-    const t1 = await adminController.addComponentType(t1_req);
+    const t1 =
+      await api.pizzaComponentsAdminController.addComponentType(t1_req);
     const t2_req = randomPizzaComponentType(true, 1);
-    const t2 = await adminController.addComponentType(t2_req);
+    const t2 =
+      await api.pizzaComponentsAdminController.addComponentType(t2_req);
 
     const c1_req = randomPizzaComponent(150, 'my-name12345');
-    await adminController.addComponent(t1.id, c1_req);
+    await api.pizzaComponentsAdminController.addComponent(t1.id, c1_req);
     const c2_req = randomPizzaComponent(300, 'other', 'description-name123');
-    await adminController.addComponent(t1.id, c2_req);
+    await api.pizzaComponentsAdminController.addComponent(t1.id, c2_req);
     const c3_req = randomPizzaComponent(200, 'name123');
-    await adminController.addComponent(t2.id, c3_req);
+    await api.pizzaComponentsAdminController.addComponent(t2.id, c3_req);
     const c4_req = randomPizzaComponent(400, 'other', 'other');
-    await adminController.addComponent(t2.id, c4_req);
+    await api.pizzaComponentsAdminController.addComponent(t2.id, c4_req);
 
-    const cGet1 = await controller.getComponentsOfType(
+    const cGet1 = await api.pizzaComponentsController.getComponentsOfType(
       t1.id,
       'name123',
       'currentPrice',
@@ -128,7 +133,7 @@ describe('PizzaComponentsController', () => {
     );
     expect(cGet1.map((i) => i.currentPrice).join()).toBe([300, 150].join());
 
-    const cGet2 = await controller.getComponentsOfType(
+    const cGet2 = await api.pizzaComponentsController.getComponentsOfType(
       t2.id,
       'name123',
       'currentPrice',

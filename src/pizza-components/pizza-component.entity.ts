@@ -3,7 +3,6 @@ import {
   Column,
   PrimaryGeneratedColumn,
   ManyToOne,
-  JoinTable,
   JoinColumn,
 } from 'typeorm';
 import { PizzaComponentType } from './pizza-component-type.entity';

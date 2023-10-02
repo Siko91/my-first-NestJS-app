@@ -1,12 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserDto } from '../../auth/auth.types';
 import { v4 as uuidv4 } from 'uuid';
-import * as path from 'path';
-import * as fs from 'fs';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Type } from '../typescriptUtils';
 import env from '../../env';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import {
   PizzaComponentDto,
   PizzaComponentTypeDto,
@@ -17,16 +14,99 @@ import { PizzaComponentType } from '../../pizza-components/pizza-component-type.
 import { PizzaComponent } from '../../pizza-components/pizza-component.entity';
 import { AuthController } from '../../auth/auth.controller';
 import { PizzaComponentsAdminController } from '../../pizza-components/pizza-components.admin.controller';
+import { DataSource } from 'typeorm';
+import { OrderedPizzaComponent } from '../../orders/ordered-pizza-component.entity';
+import { OrderedPizza } from '../../orders/ordered-pizza.entity';
+import { Order } from '../../orders/order.entity';
+import { HealthModule } from '../../health/health.module';
+import { PizzaComponentsModule } from '../../pizza-components/pizza-components.module';
+import { PizzaComponentsController } from '../../pizza-components/pizza-components.controller';
+import { AuthModule } from '../../auth/auth.module';
+import { OrdersController } from '../../orders/orders.controller';
+import { OrdersModule } from '../../orders/orders.module';
+import { OrdersAdminController } from '../../orders/orders.admin.controller';
+import { HealthController } from '../../health/health.controller';
+import { UsersModule } from '../../users/users.module';
+import { UsersService } from '../../users/users.service';
+import { AuthService } from '../../auth/auth.service';
+import { OrdersService } from '../../orders/orders.service';
+import { PizzaComponentsService } from '../../pizza-components/pizza-components.service';
+import { UsersAdminController } from '../../users/users.admin.controller';
+import { UsersController } from '../../users/users.controller';
 
-export function getDbPath() {
-  return path.join(__dirname, '..', '..', 'dbTest.sqlite');
+export const TestDbEntities = [
+  User,
+  PizzaComponentType,
+  PizzaComponent,
+  OrderedPizzaComponent,
+  OrderedPizza,
+  Order,
+];
+
+export const TestDbModule = TypeOrmModule.forRoot({
+  type: 'better-sqlite3',
+  database: env.SQLITE_DB_NAME,
+  entities: TestDbEntities,
+  synchronize: true, // ONLY FOR TESTING - use "migrations" for production
+  dropSchema: true, // ONLY FOR TESTING
+});
+
+export async function initTestApi() {
+  const module: TestingModule = await Test.createTestingModule({
+    imports: [
+      JwtModule.register({
+        global: true,
+        secret: env.JWT_SECRET,
+        signOptions: { expiresIn: '7d' },
+      }),
+      TestDbModule,
+      HealthModule,
+      AuthModule,
+      OrdersModule,
+      PizzaComponentsModule,
+      UsersModule,
+      JwtModule,
+    ],
+  }).compile();
+
+  const api = {
+    // controller
+    healthController: module.get(HealthController),
+    authController: module.get(AuthController),
+    ordersController: module.get(OrdersController),
+    ordersAdminController: module.get(OrdersAdminController),
+    pizzaComponentsController: module.get(PizzaComponentsController),
+    pizzaComponentsAdminController: module.get(PizzaComponentsAdminController),
+    usersController: module.get(UsersController),
+    usersAdminController: module.get(UsersAdminController),
+    // service
+    usersService: module.get(UsersService),
+    authService: module.get(AuthService),
+    ordersService: module.get(OrdersService),
+    ordersAdminService: module.get(OrdersService),
+    pizzaComponentsService: module.get(PizzaComponentsService),
+    pizzaComponentsAdminService: module.get(PizzaComponentsService),
+    // libs
+    jwtService: module.get(JwtService),
+    appDataSource: module.get(DataSource),
+  };
+
+  await dropDbTables(api.appDataSource);
+
+  return api;
 }
 
-export function dropDb() {
-  const dbPath = getDbPath();
-  if (fs.existsSync(dbPath)) {
-    return fs.unlinkSync(dbPath);
+export async function dropDbTables(appDataSource: DataSource) {
+  const logs: string[] = [];
+  for (const Entity of TestDbEntities) {
+    const repo = appDataSource.getRepository(Entity);
+    await repo.find();
+    try {
+      const res = await repo.delete({});
+      logs.push(`${res.affected} ${Entity.name} rows`);
+    } catch (error) {}
   }
+  console.log(`Deleted : ${logs.join(', ')}`);
 }
 
 export function randomUserDto(): CreateUserDto {
@@ -100,8 +180,10 @@ export function makeOrderDto(
 }
 
 export async function setupTestData(
-  authController: AuthController,
-  pizzaComponentsAdminController: PizzaComponentsAdminController,
+  api: {
+    authController: AuthController;
+    pizzaComponentsAdminController: PizzaComponentsAdminController;
+  },
   options: {
     usersToCreate: number;
     componentTypes: {
@@ -119,7 +201,7 @@ export async function setupTestData(
 
   for (let i = 0; i < options.usersToCreate; i++) {
     const req = randomUserDto();
-    const user = await authController.register(req);
+    const user = await api.authController.register(req);
     userRequests.push(req);
     users.push(user);
   }
@@ -134,7 +216,7 @@ export async function setupTestData(
     const { mandatory, maximum, components } = options.componentTypes[i];
 
     const tReq = randomPizzaComponentType(mandatory, maximum);
-    const t = await pizzaComponentsAdminController.addComponentType(tReq);
+    const t = await api.pizzaComponentsAdminController.addComponentType(tReq);
     componentTypeRequests.push(tReq);
     componentTypes.push(t);
 
@@ -146,7 +228,10 @@ export async function setupTestData(
       comp = typeof comp === 'number' ? { price: comp } : { ...comp };
       const { price, name, description } = comp;
       const cReq = randomPizzaComponent(price, name, description);
-      const c = await pizzaComponentsAdminController.addComponent(t.id, cReq);
+      const c = await api.pizzaComponentsAdminController.addComponent(
+        t.id,
+        cReq,
+      );
       componentRequests[i].push(cReq);
       createdComponents[i].push(c);
     }
@@ -161,31 +246,4 @@ export async function setupTestData(
     componentTypeRequests,
     componentRequests,
   };
-}
-
-export async function getControllerOrService<TModule, TControllerOrService>(
-  ModuleType: Type<TModule>,
-  ControllerType: Type<TControllerOrService>,
-  TypeOrmEntities: Type<any>[],
-): Promise<TControllerOrService> {
-  const module: TestingModule = await Test.createTestingModule({
-    imports: [
-      JwtModule.register({
-        global: true,
-        secret: env.JWT_SECRET,
-        signOptions: { expiresIn: '7d' },
-      }),
-      TypeOrmModule.forRoot({
-        type: 'sqlite',
-        database: env.SQLITE_DB_NAME,
-        entities: [...TypeOrmEntities],
-        synchronize: true, // ONLY FOR TESTING - use "migrations" for production
-        dropSchema: true, // ONLY FOR TESTING
-      }),
-      ModuleType,
-    ],
-  }).compile();
-
-  const result = module.get(ControllerType);
-  return result;
 }

@@ -15,6 +15,8 @@ const config = {
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
+
+  maxConcurrency: 1,
 };
 
 module.exports = config;

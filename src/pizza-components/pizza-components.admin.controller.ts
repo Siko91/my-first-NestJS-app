@@ -6,7 +6,6 @@ import {
   Put,
   Body,
   UseGuards,
-  Query,
 } from '@nestjs/common';
 import { PizzaComponentsService } from './pizza-components.service';
 import { AdminAuthGuard } from '../auth/auth.guard';

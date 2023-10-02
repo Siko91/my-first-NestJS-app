@@ -1,56 +1,37 @@
-import {
-  dropDb,
-  getControllerOrService,
-  randomUserDto,
-} from '../utils/test/testingFunctions';
-import { User } from './user.entity';
-import { AuthController } from '../auth/auth.controller';
-import { AuthModule } from '../auth/auth.module';
-import { UsersModule } from './users.module';
-import { UsersAdminController } from './users.admin.controller';
+import { initTestApi, randomUserDto } from '../utils/test/testingFunctions';
 
 describe('UsersController', () => {
-  let authController: AuthController;
-  let usersAdminController: UsersAdminController;
-
-  beforeEach(async () => {
-    dropDb();
-
-    authController = await getControllerOrService(AuthModule, AuthController, [
-      User,
-    ]);
-    usersAdminController = await getControllerOrService(
-      UsersModule,
-      UsersAdminController,
-      [User],
-    );
-  }, 30000);
-
   it('should be defined', async () => {
-    expect(authController).toBeDefined();
-    expect(usersAdminController).toBeDefined();
+    const api = await initTestApi();
+
+    expect(api.authController).toBeDefined();
+    expect(api.usersAdminController).toBeDefined();
   }, 30000);
 
   it('Admin can get user', async () => {
-    const u = await authController.register(randomUserDto());
+    const api = await initTestApi();
 
-    const res = await usersAdminController.listUsers();
+    const u = await api.authController.register(randomUserDto());
+
+    const res = await api.usersAdminController.listUsers();
     expect(res).toHaveLength(1);
 
-    const uRes = await usersAdminController.getOne(u.id);
+    const uRes = await api.usersAdminController.getOne(u.id);
     expect(uRes.username).toBe(u.username);
   }, 30000);
 
   it('Admin can list users', async () => {
+    const api = await initTestApi();
+
     const u1_req = randomUserDto();
     const u2_req = randomUserDto();
     const u3_req = randomUserDto();
 
-    const u1 = await authController.register(u1_req);
-    const u2 = await authController.register(u2_req);
-    const u3 = await authController.register(u3_req);
+    const u1 = await api.authController.register(u1_req);
+    const u2 = await api.authController.register(u2_req);
+    const u3 = await api.authController.register(u3_req);
 
-    const res = await usersAdminController.listUsers();
+    const res = await api.usersAdminController.listUsers();
     expect(res).toHaveLength(3);
     expect(
       res
@@ -61,19 +42,21 @@ describe('UsersController', () => {
   }, 30000);
 
   it('Admin can search users', async () => {
+    const api = await initTestApi();
+
     const u1_req = { ...randomUserDto(), fullName: 'some name' };
     const u2_req = { ...randomUserDto(), username: 'username-test' };
     const u3_req = { ...randomUserDto(), address: 'test-address' };
     const u4_req = { ...randomUserDto(), email: 'my-test-email@example.com' };
     const u5_req = { ...randomUserDto(), phone: 'some phone' };
 
-    await authController.register(u1_req);
-    const u2 = await authController.register(u2_req);
-    const u3 = await authController.register(u3_req);
-    const u4 = await authController.register(u4_req);
-    await authController.register(u5_req);
+    await api.authController.register(u1_req);
+    const u2 = await api.authController.register(u2_req);
+    const u3 = await api.authController.register(u3_req);
+    const u4 = await api.authController.register(u4_req);
+    await api.authController.register(u5_req);
 
-    const res = await usersAdminController.listUsers('test');
+    const res = await api.usersAdminController.listUsers('test');
     expect(res).toHaveLength(3);
     expect(
       res
@@ -84,32 +67,38 @@ describe('UsersController', () => {
   }, 30000);
 
   it('Admin can register users', async () => {
-    const u = await usersAdminController.addUser(randomUserDto());
-    const uRes = await usersAdminController.getOne(u.id);
+    const api = await initTestApi();
+
+    const u = await api.usersAdminController.addUser(randomUserDto());
+    const uRes = await api.usersAdminController.getOne(u.id);
     expect(uRes.username).toBe(u.username);
   }, 30000);
 
   it('Admin can modify users', async () => {
-    const u = await authController.register(randomUserDto());
-    await usersAdminController.updateUser(
+    const api = await initTestApi();
+
+    const u = await api.authController.register(randomUserDto());
+    await api.usersAdminController.updateUser(
       { user: { ...u, isAdmin: true } },
       u.id,
       { isAdmin: true, fullName: 'John' },
     );
 
-    const uRes = await usersAdminController.getOne(u.id);
+    const uRes = await api.usersAdminController.getOne(u.id);
     expect(uRes.isAdmin).toBe(true);
     expect(uRes.fullName).toBe('John');
   }, 30000);
 
   it('Admin can delete users', async () => {
-    const u = await authController.register(randomUserDto());
-    await usersAdminController.deleteUser(
+    const api = await initTestApi();
+
+    const u = await api.authController.register(randomUserDto());
+    await api.usersAdminController.deleteUser(
       { user: { ...u, isAdmin: true } },
       u.id,
     );
 
-    const list = await usersAdminController.listUsers();
+    const list = await api.usersAdminController.listUsers();
     expect(list).toHaveLength(0);
   }, 30000);
 });

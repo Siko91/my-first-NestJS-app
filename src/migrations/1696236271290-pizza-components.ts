@@ -47,8 +47,7 @@ const componentTypes: PizzaComponentsByType[] = [
     mandatory: true,
     maximum: 10,
     name: 'Standard Toppings',
-    description:
-      'Pizzas commonly have tomato sauce, milk cream or butter on top of the dough',
+    description: 'Pizzas usually have cheeses, meat slices and other toppings.',
     components: [
       { name: 'American Cheese', description: '', currentPrice: 200 },
       { name: 'Asiago Cheese', description: '', currentPrice: 200 },
@@ -82,9 +81,10 @@ const componentTypes: PizzaComponentsByType[] = [
     mandatory: false,
     maximum: 3,
     name: 'Topping Sauce',
-    description:
-      'Pizzas commonly have tomato sauce, milk cream or butter on top of the dough',
+    description: 'Many people prefer to put sauce on top of their pizzas.',
     components: [
+      { name: 'Ketchup', description: '', currentPrice: 50 },
+      { name: 'Mayonnaise', description: '', currentPrice: 50 },
       { name: 'Barbecue sauce', description: '', currentPrice: 100 },
       { name: 'Marinara sauce', description: '', currentPrice: 100 },
       { name: 'Arrabiata', description: '', currentPrice: 100 },
